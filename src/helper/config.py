@@ -38,6 +38,7 @@ class Config:
         # Azuracast API
         self.azuracast_api_url: str = self.config["azuracast_api_url"]
         self.azuracast_api_key: str = self.config["azuracast_api_key"]
+        self.azuracast_station_name: str = self.config["azuracast_station_name"]
 
     # Function to change a value in config.yaml
     def change_value(self, key, value):
