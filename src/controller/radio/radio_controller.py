@@ -36,6 +36,22 @@ class RadioController:
             logger.error(f"Failed to get now playing: {e}")
             return "Unknown"
 
+    async def get_listeners(self, station_id: str) -> int:
+        url = f"{self.config.azuracast_api_url}/station/{station_id}/listeners"
+        try:
+            response = await self.client.get(url, headers=self.headers)
+            response.raise_for_status()
+            data = response.json()
+            
+            if isinstance(data, list):
+                return len(data)
+            else:
+                logger.error("Unexpected response format")
+                return 0
+        except Exception as e:
+            logger.error(f"Failed to get listeners: {e}")
+            return 0
+
     async def __aenter__(self):
         self.client = httpx.AsyncClient(timeout=None)
         return self
