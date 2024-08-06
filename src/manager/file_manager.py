@@ -13,12 +13,12 @@ log_file:
 # [BOT]
 bot_prefix: 
 bot_token: 
-chat_category: 
 dev_guild_id: 
 logs_channel: 
 
-# [AI]
-api_endpoint: 
+# [Radio]
+azuracast_api_url: 
+azuracast_api_key:  
 """
 
 class FileManager:
