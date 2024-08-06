@@ -1,8 +1,8 @@
-# AI Bot
- > Discord bot to speak with my [CatAI](https://github.com/withcatai/catai) models.
+# HFUYN Radio
+ > Discord bot that connects our Azuracast Server with our Discord.
 
 ## Table of contents
-- [AI Bot](#ai-bot)
+- [HFUYN Radio](#hfuyn-radio)
   - [Table of contents](#table-of-contents)
   - [Requirements](#requirements)
   - [Installation](#installation)
@@ -13,7 +13,7 @@
 ## Requirements
 - Discord Bot
 - Python 3.8 or higher
-- Selfhosted [CatAI](https://github.com/withcatai/catai) (powerful machines are recommended for better performance)
+- Selfhosted [Azuracast](https://www.azuracast.com/) (powerful machines are recommended for better performance)
 
 ## Installation
 1. Clone the repository
@@ -49,11 +49,11 @@ log_file: # String, Path to the log file (Example: ai_bot.log)
 # [BOT]
 bot_prefix: # String, Prefix for the bot
 bot_token: # String, Token of the bot
-chat_category: # String, Category ID for the chat channels to be created
 dev_guild_id: # String, Guild ID for the development guild
 
 # [AI]
-api_endpoint: # String, URL to the CatAI selfhosted API (Example: http://127.0.0.1:3000/api/chat/prompt)
+azuracast_api_url: # String, URL to the Azuracast API
+azuracast_api_key: # String, API Key for the Azuracast API
 ```
 
 ## License
