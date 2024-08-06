@@ -1,8 +1,8 @@
-# HFUYN Radio
+# HFUN Radio
  > Discord bot that connects our Azuracast Server with our Discord.
 
 ## Table of contents
-- [HFUYN Radio](#hfuyn-radio)
+- [HFUN Radio](#hfun-radio)
   - [Table of contents](#table-of-contents)
   - [Requirements](#requirements)
   - [Installation](#installation)
