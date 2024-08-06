@@ -20,7 +20,7 @@ class BotStatus:
         self.radio_controller = RadioController()
 
         self.sentences = [
-            #self.get_user_count_status,
+            self.get_user_count_status,
             self.get_now_playing_status
         ]
 
