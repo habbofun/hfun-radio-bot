@@ -15,10 +15,17 @@ class NowPlaying(commands.Cog):
     async def now_playing_command(self, interaction: discord.Interaction):
         try:
             now_playing = await self.radio_controller.get_now_playing()
+            if now_playing is None:
+                now_playing = "No song is currently playing or failed to get the song name."
 
             embed_schema = EmbedSchema(
                 title="🎵 Now playing",
-                description=f"Currently playing: {now_playing}",
+                fields=[
+                    {
+                        "name": "",
+                        "value": f"```{now_playing}```",
+                    }
+                ],
                 color=0xb34760
             )
 
