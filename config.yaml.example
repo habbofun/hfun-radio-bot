@@ -1,0 +1,16 @@
+# [APP]
+app_logo: 
+app_name: 
+app_url: 
+app_version: 
+log_file: 
+
+# [BOT]
+bot_prefix: 
+bot_token: 
+dev_guild_id: 
+logs_channel: 
+
+# [Radio]
+azuracast_api_url: 
+azuracast_api_key: 
