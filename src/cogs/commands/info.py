@@ -24,14 +24,18 @@ class Info(commands.Cog):
 
             embed_schema = EmbedSchema(
                 title="📻 Station Information",
+                description=f"Here is some information about our radio station. Click in our name to go the station website.",
+                author_url=self.config.azuracast_station_url,
                 fields=[
                     {
                         "name": "👤 Current Listeners",
                         "value": f"```{current_listeners}```",
+                        "inline": True
                     },
                     {
                         "name": "🎵 Now playing",
                         "value": f"```{now_playing}```",
+                        "inline": True
                     }
                 ],
                 color=0xF4D701
