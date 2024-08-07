@@ -1,4 +1,4 @@
-import discord
+from discord import Embed
 from loguru import logger
 from datetime import datetime
 from src.helper.config import Config
@@ -12,13 +12,13 @@ class EmbedController:
     def __init__(self):
         self.config = Config()
     
-    async def build_embed(self, embed_schema: EmbedSchema) -> discord.Embed:
+    async def build_embed(self, embed_schema: EmbedSchema) -> Embed:
         """
         Builds a Discord embed based on the provided embed schema.
         """
         try:
             schema = embed_schema.get_schema()
-            embed = discord.Embed(
+            embed = Embed(
                 title=schema["title"],
                 description=schema["description"],
                 color=schema["color"]
@@ -43,9 +43,9 @@ class EmbedController:
 
         except Exception as e:
             logger.error(f"Failed to build embed: {e}")
-            return discord.Embed(title="Error", description="Failed to build embed")
+            return Embed(title="Error", description="Failed to build embed")
 
-    def set_defaults(self, embed: discord.Embed, schema: dict):
+    def set_defaults(self, embed: Embed, schema: dict):
         """
         Sets default values for various properties of the embed.
         """

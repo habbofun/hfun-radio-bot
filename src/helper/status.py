@@ -17,7 +17,7 @@ class BotStatus:
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.config = Config()
-        self.radio_controller = RadioController()
+        self.radio_controller = RadioController(bot)
 
         self.sentences = [
             self.get_user_count_status,
@@ -36,7 +36,7 @@ class BotStatus:
             str: A status message with the total user count.
         """
         user_count = sum(guild.member_count for guild in self.bot.guilds)
-        return f"I can see {user_count} users."
+        return f"I can see {user_count} users in the discord!"
 
     async def get_now_playing_status(self) -> str:
         """
@@ -45,7 +45,7 @@ class BotStatus:
         Returns:
             str: A status message with the current song.
         """
-        now_playing = await self.radio_controller.get_now_playing()
+        now_playing = await self.radio_controller.get_now_playing(self.config.azuracast_station_name)
         return f"Now playing: {now_playing}"
 
     async def get_listeners_status(self) -> str:
