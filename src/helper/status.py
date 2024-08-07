@@ -22,7 +22,8 @@ class BotStatus:
         self.sentences = [
             self.get_user_count_status,
             self.get_now_playing_status,
-            self.get_listeners_status
+            self.get_listeners_status,
+            self.get_current_streamers_status
         ]
 
         self.status_generator = cycle(self.sentences)
@@ -56,6 +57,16 @@ class BotStatus:
         """
         listeners = await self.radio_controller.get_listeners(self.config.azuracast_station_name)
         return f"Currently {listeners} listeners."
+
+    async def get_current_streamers_status(self) -> str:
+        """
+        Generates a status message indicating the number of current streamers.
+
+        Returns:
+            str: A status message with the number of current streamers.
+        """
+        streamers = await self.radio_controller.get_current_streamers(self.config.azuracast_station_name)
+        return f"Current DJ(s) {len(streamers)}."
 
     async def get_status_message(self) -> str:
         """

@@ -18,9 +18,10 @@ class Info(commands.Cog):
         try:
             now_playing = await self.radio_controller.get_now_playing()
             current_listeners = await self.radio_controller.get_listeners(self.config.azuracast_station_name)
+            current_streamers = await self.radio_controller.get_current_streamers(self.config.azuracast_station_name)
 
             if now_playing is None:
-                now_playing = "No song is currently playing or failed to get the song name."
+                now_playing = "None or Error"
 
             embed_schema = EmbedSchema(
                 title="📻 Station Information",
@@ -36,6 +37,11 @@ class Info(commands.Cog):
                         "name": "🎵 Now playing",
                         "value": f"```{now_playing}```",
                         "inline": True
+                    },
+                    {
+                        "name": "🎙️ Current Streamers",
+                        "value": f"```{current_streamers}```",
+                        "inline": False
                     }
                 ],
                 color=0xF4D701

@@ -17,7 +17,10 @@ class RadioController:
         
         self.config = Config()
         self.client = httpx.AsyncClient(timeout=None)
-        self.headers = {"X-API-Key": self.config.azuracast_api_key}
+        self.headers = {
+            "X-API-Key": self.config.azuracast_api_key,
+            "Accept": "application/json"
+        }
 
     async def get_now_playing(self) -> str:
         url = f"{self.config.azuracast_api_url}/nowplaying"
@@ -51,6 +54,23 @@ class RadioController:
         except Exception as e:
             logger.error(f"Failed to get listeners: {e}")
             return 0
+
+    async def get_current_streamers(self, station_id: str) -> list:
+        url = f"{self.config.azuracast_api_url}/station/{station_id}/streamers"
+        try:
+            response = await self.client.get(url, headers=self.headers)
+            response.raise_for_status()
+            data = response.json()
+            
+            if isinstance(data, list):
+                streamers_display_names = ", ".join([streamer.get("display_name", "Unknown") for streamer in data]) if len(data) > 0 else "None or AutoDJ"
+                return streamers_display_names
+            else:
+                logger.error("Unexpected response format")
+                return []
+        except Exception as e:
+            logger.error(f"Failed to get current djs: {e}")
+            return []
 
     async def __aenter__(self):
         self.client = httpx.AsyncClient(timeout=None)
