@@ -10,6 +10,8 @@ bot_prefix:
 bot_token: 
 dev_guild_id: 
 logs_channel: 
+panel_channel_id: 
+panel_message_id: 
 
 # [Radio]
 azuracast_station_url: 
