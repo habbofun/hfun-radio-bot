@@ -12,5 +12,7 @@ dev_guild_id:
 logs_channel: 
 
 # [Radio]
+azuracast_station_url: 
+azuracast_station_name: 
 azuracast_api_url: 
 azuracast_api_key: 

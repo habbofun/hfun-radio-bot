@@ -36,9 +36,11 @@ class Config:
         self.dev_guild_id: discord.Object = discord.Object(int(self.config["dev_guild_id"]))
 
         # Azuracast API
+        self.azuracast_station_url: str = self.config["azuracast_station_url"]
+        self.azuracast_station_name: str = self.config["azuracast_station_name"]
+
         self.azuracast_api_url: str = self.config["azuracast_api_url"]
         self.azuracast_api_key: str = self.config["azuracast_api_key"]
-        self.azuracast_station_name: str = self.config["azuracast_station_name"]
 
     # Function to change a value in config.yaml
     def change_value(self, key, value):
