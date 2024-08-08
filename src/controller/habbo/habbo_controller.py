@@ -21,7 +21,7 @@ class HabboController:
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self._output_dir = os.path.abspath(os.path.join(base_dir, "../../controller/habbo/temp"))
-        self._pixel_font_path = os.path.abspath(os.path.join(base_dir, "../../assets/pixel_font.ttf"))
+        self._pixel_font_path = os.path.abspath(os.path.join(base_dir, "../../assets/Volter.ttf"))
         self._base_background_path = os.path.abspath(os.path.join(base_dir, "../../assets/habbo_consola_small.png"))
 
     async def get_user_info(self, username):
@@ -83,7 +83,7 @@ class HabboController:
         if not os.path.exists(font_path):
             font = ImageFont.load_default()
         else:
-            font = ImageFont.truetype(font_path, 11)
+            font = ImageFont.truetype(font_path, 9)
 
         avatar_image = avatar_image.resize((64, 110), Image.LANCZOS)
         
@@ -125,7 +125,7 @@ class HabboController:
         await self.draw_text_with_border(draw, 150, y_offset, f"{'Yes' if user_info['online'] else 'No'}", font, online_color if user_info['online'] else offline_color, border_color)
         y_offset += 20
 
-        await self.draw_text_with_border(draw, 100, y_offset, f"Última Conexión: {last_access_formatted}", font, text_color, border_color)
+        await self.draw_text_with_border(draw, 100, y_offset, f"Últ. Conex.: {last_access_formatted}", font, text_color, border_color)
         y_offset += 20
 
         await self.draw_text_with_border(draw, 100, y_offset, f"Registro: {member_since_formatted}", font, text_color, border_color)
