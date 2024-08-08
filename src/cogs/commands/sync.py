@@ -36,7 +36,10 @@ class SyncCommand(commands.Cog):
 
         except Exception as e:
             error_message = f"❌ Failed to sync slash commands: {e}"
-            await ctx.send(error_message, delete_after=10)  # Optionally delete the error message after a delay
+            try:
+                await ctx.send(error_message, delete_after=10)  # Optionally delete the error message after a delay
+            except Exception as send_error:
+                logger.critical(f"Failed to send error message: {send_error}")
             logger.critical(error_message)
 
 async def setup(bot: commands.Bot):

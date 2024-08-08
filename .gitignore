@@ -155,3 +155,4 @@ cython_debug/
 # Bot files
 config.yaml
 ai_bot.log
+/src/controller/habbo/temp

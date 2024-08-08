@@ -38,7 +38,10 @@ class KekoCmd(commands.Cog):
         except Exception as e:
             logger.critical(f"Failed to respond to username command: {e}")
             if not interaction.response.is_done():
-                await interaction.response.send_message("There was an error trying to execute that command!", ephemeral=True)
+                try:
+                    await interaction.followup.send("There was an error trying to execute that command!", ephemeral=True)
+                except Exception as followup_error:
+                    logger.critical(f"Failed to send follow-up message: {followup_error}")
 
     async def create_habbo_image_and_handle_errors(self, username: str):
         try:

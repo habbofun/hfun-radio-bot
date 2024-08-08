@@ -22,7 +22,8 @@ class InfoPanel(commands.Cog):
                 panel_channel_id = interaction.channel
 
             if not await self.radio_controller.update_panel_config_values(panel_channel_id.id, self.config.panel_message_id):
-                await interaction.response.send_message("Failed to update panel config values.", ephemeral=True)
+                if not interaction.response.is_done():
+                    await interaction.response.send_message("Failed to update panel config values.", ephemeral=True)
                 return
 
             await self.radio_controller.create_or_update_embed()
@@ -30,7 +31,10 @@ class InfoPanel(commands.Cog):
         except Exception as e:
             logger.critical(f"Failed to respond to panel command: {e}")
             if not interaction.response.is_done():
-                await interaction.response.send_message("There was an error trying to execute that command!", ephemeral=True)
+                try:
+                    await interaction.followup.send("There was an error trying to execute that command!", ephemeral=True)
+                except Exception as followup_error:
+                    logger.critical(f"Failed to send follow-up message: {followup_error}")
 
     @info_panel.error
     async def info_panel_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):

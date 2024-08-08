@@ -25,7 +25,8 @@ class LogChannelCommand(commands.Cog):
                 self.config.change_value("logs_channel", log_channel.id)
             except Exception as e:
                 logger.critical(f"Failed to change value in config.yaml: {e}")
-                await interaction.response.send_message("There was an error trying to write the config file!", ephemeral=hidden)
+                if not interaction.response.is_done():
+                    await interaction.response.send_message("There was an error trying to write the config file!", ephemeral=hidden)
                 return
 
             embed_schema = EmbedSchema(
@@ -45,12 +46,15 @@ class LogChannelCommand(commands.Cog):
         except Exception as e:
             logger.critical(f"Failed to respond to info command: {e}")
             if not interaction.response.is_done():
-                await interaction.response.send_message("There was an error trying to execute that command!", ephemeral=hidden)
+                try:
+                    await interaction.followup.send("There was an error trying to execute that command!", ephemeral=hidden)
+                except Exception as followup_error:
+                    logger.critical(f"Failed to send follow-up message: {followup_error}")
 
     @log_channel.error
     async def log_channel_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         if isinstance(error, app_commands.errors.MissingPermissions):
-            await interaction.response.send_message(f"You don't have the necessary permissions to use this command.", ephemeral=True)
+            await interaction.response.send_message("You don't have the necessary permissions to use this command.", ephemeral=True)
         else:
             await interaction.response.send_message(f"An error occurred: {error}", ephemeral=True)
 

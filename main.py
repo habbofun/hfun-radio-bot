@@ -58,14 +58,25 @@ class Bot(commands.Bot):
             logger.critical(f"Error setting up bot: {format_exc()}")
             exit()
 
-    # Bot command worker for async commands
     async def command_worker(self):
         while True:
-            ctx, coro = await self.command_queue.get()
+            interaction, coro = await self.command_queue.get()
             try:
                 await coro
+            except discord.errors.NotFound as e:
+                logger.critical(f"Failed to respond to interaction: {e}")
+                if not interaction.response.is_done():
+                    try:
+                        await interaction.followup.send("An error occurred while executing your command. Please notify an Admin.", ephemeral=True)
+                    except Exception as followup_error:
+                        logger.critical(f"Failed to send follow-up message: {followup_error}")
             except Exception as e:
-                await ctx.send(f"An error occurred executing your command. Please notify an Admin.")
+                logger.critical(f"Unexpected error: {e}")
+                if hasattr(interaction, 'followup') and not interaction.response.is_done():
+                    try:
+                        await interaction.followup.send("An error occurred while executing your command. Please notify an Admin.", ephemeral=True)
+                    except Exception as followup_error:
+                        logger.critical(f"Failed to send follow-up message: {followup_error}")
             finally:
                 self.command_queue.task_done()
 
