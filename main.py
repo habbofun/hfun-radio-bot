@@ -1,5 +1,5 @@
 # Imports
-import os, discord
+import os, discord, asyncio
 from loguru import logger
 from traceback import format_exc
 from discord.ext import commands
@@ -14,6 +14,7 @@ logger.add(Config().log_file, mode="w+")
 class Bot(commands.Bot):
     def __init__(self) -> None:
         self.file_manager = FileManager()
+        self.command_queue = asyncio.Queue()
         super().__init__(command_prefix=Config().bot_prefix, help_command=None, intents=discord.Intents.all())
 
     # Function to load the extensions
@@ -48,11 +49,25 @@ class Bot(commands.Bot):
                 if filename.endswith(".py") and not filename.startswith("_"):
                     await self.load_extension(f"src.cogs.loops.{filename[:-3]}")
 
+            # Start the command worker
+            self.loop.create_task(self.command_worker())
+
             # Done!
             logger.info(f"Setup completed!")
         except Exception:
             logger.critical(f"Error setting up bot: {format_exc()}")
             exit()
+
+    # Bot command worker for async commands
+    async def command_worker(self):
+        while True:
+            ctx, coro = await self.command_queue.get()
+            try:
+                await coro
+            except Exception as e:
+                await ctx.send(f"An error occurred executing your command. Please notify an Admin.")
+            finally:
+                self.command_queue.task_done()
 
     # Function to shutdown the bot
     async def close(self) -> None:

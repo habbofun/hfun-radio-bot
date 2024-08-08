@@ -14,6 +14,9 @@ class InfoPanel(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.command(name="panel", description="Send the information panel about our radio station.")
     async def info_panel(self, interaction: discord.Interaction, panel_channel_id: discord.TextChannel = None):
+        await self.bot.command_queue.put((interaction, self.process_info_panel(interaction, panel_channel_id)))
+
+    async def process_info_panel(self, interaction: discord.Interaction, panel_channel_id: discord.TextChannel):
         try:
             if panel_channel_id is None:
                 panel_channel_id = interaction.channel
@@ -26,7 +29,8 @@ class InfoPanel(commands.Cog):
             await interaction.response.send_message("Information panel updated.", ephemeral=True)
         except Exception as e:
             logger.critical(f"Failed to respond to panel command: {e}")
-            await interaction.response.send_message("There was an error trying to execute that command!", ephemeral=True)
+            if not interaction.response.is_done():
+                await interaction.response.send_message("There was an error trying to execute that command!", ephemeral=True)
 
     @info_panel.error
     async def info_panel_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):

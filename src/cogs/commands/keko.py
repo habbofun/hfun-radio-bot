@@ -14,6 +14,9 @@ class KekoCmd(commands.Cog):
 
     @app_commands.command(name="keko", description="Send the information about a Habbo Origins user.")
     async def habbo_keko_info(self, interaction: discord.Interaction, username: str, hidden: bool = False):
+        await self.bot.command_queue.put((interaction, self.process_keko_info(interaction, username, hidden)))
+
+    async def process_keko_info(self, interaction: discord.Interaction, username: str, hidden: bool):
         if not username:
             await interaction.response.send_message("You need to provide a username.", ephemeral=True)
             return

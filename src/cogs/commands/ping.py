@@ -12,6 +12,9 @@ class Ping(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.command(name="ping", description="Command to test the bot's latency.")
     async def ping_command(self, interaction: discord.Interaction):
+        await self.bot.command_queue.put((interaction, self.process_ping_command(interaction)))
+
+    async def process_ping_command(self, interaction: discord.Interaction):
         try:
             latency = round(self.bot.latency * 1000)
 
@@ -25,12 +28,13 @@ class Ping(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=True)
         except Exception as e:
             logger.critical(f"Failed to respond to ping command: {e}")
-            await interaction.response.send_message("There was an error trying to execute that command!", ephemeral=True)
+            if not interaction.response.is_done():
+                await interaction.response.send_message("There was an error trying to execute that command!", ephemeral=True)
 
     @ping_command.error
     async def ping_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         if isinstance(error, app_commands.errors.MissingPermissions):
-            await interaction.response.send_message(f"You don't have the necessary permissions to use this command.",ephemeral=True)
+            await interaction.response.send_message(f"You don't have the necessary permissions to use this command.", ephemeral=True)
         else:
             await interaction.response.send_message(f"An error occurred: {error}", ephemeral=True)
 

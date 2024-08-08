@@ -14,8 +14,10 @@ class LogChannelCommand(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.command(name="log_channel", description="Set the bot log channel.")
     async def log_channel(self, interaction: discord.Interaction, log_channel: discord.TextChannel = None, hidden: bool = False) -> None:
-        try:
+        await self.bot.command_queue.put((interaction, self.process_log_channel(interaction, log_channel, hidden)))
 
+    async def process_log_channel(self, interaction: discord.Interaction, log_channel: discord.TextChannel, hidden: bool):
+        try:
             if log_channel is None:
                 log_channel = interaction.channel
 
@@ -28,7 +30,7 @@ class LogChannelCommand(commands.Cog):
 
             embed_schema = EmbedSchema(
                 title="Log channel update",
-                description="Succesfully set the log channel to the chanel below.",
+                description="Successfully set the log channel to the channel below.",
                 fields=[
                     {
                         "name": "New logs channel",
@@ -42,12 +44,13 @@ class LogChannelCommand(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=hidden)
         except Exception as e:
             logger.critical(f"Failed to respond to info command: {e}")
-            await interaction.response.send_message("There was an error trying to execute that command!", ephemeral=hidden)
+            if not interaction.response.is_done():
+                await interaction.response.send_message("There was an error trying to execute that command!", ephemeral=hidden)
 
     @log_channel.error
     async def log_channel_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         if isinstance(error, app_commands.errors.MissingPermissions):
-            await interaction.response.send_message(f"You don't have the necessary permissions to use this command.",ephemeral=True)
+            await interaction.response.send_message(f"You don't have the necessary permissions to use this command.", ephemeral=True)
         else:
             await interaction.response.send_message(f"An error occurred: {error}", ephemeral=True)
 

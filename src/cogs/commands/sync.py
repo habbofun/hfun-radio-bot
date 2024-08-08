@@ -11,6 +11,9 @@ class SyncCommand(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def sync(self, ctx: commands.Context, guild: discord.Guild = None):
+        await self.bot.command_queue.put((ctx, self.process_sync_command(ctx, guild)))
+
+    async def process_sync_command(self, ctx: commands.Context, guild: discord.Guild = None):
         try:
             await ctx.message.delete()
         except:
