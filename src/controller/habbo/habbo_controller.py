@@ -114,7 +114,7 @@ class HabboController:
 
         y_offset += 10
 
-        lines = await self.wrap_text(f"Status: {user_info['motto']}", font, max_width)
+        lines = await self.wrap_text(f"Estado: {user_info['motto']}", font, max_width)
         for line in lines:
             await self.draw_text_with_border(draw, 100, y_offset, line, font, text_color, border_color)
             y_offset += 10
@@ -122,23 +122,23 @@ class HabboController:
         y_offset += 10
 
         await self.draw_text_with_border(draw, 100, y_offset, "Online: ", font, text_color, border_color)
-        await self.draw_text_with_border(draw, 150, y_offset, f"{'Yes' if user_info['online'] else 'No'}", font, online_color if user_info['online'] else offline_color, border_color)
+        await self.draw_text_with_border(draw, 125, y_offset, f"{'Yes' if user_info['online'] else 'No'}", font, online_color if user_info['online'] else offline_color, border_color)
         y_offset += 20
 
         await self.draw_text_with_border(draw, 100, y_offset, f"Visto: {last_access_formatted}", font, text_color, border_color)
         y_offset += 20
 
-        await self.draw_text_with_border(draw, 100, y_offset, f"Miembro Desde: {member_since_formatted}", font, text_color, border_color)
+        await self.draw_text_with_border(draw, 100, y_offset, f"Registro: {member_since_formatted}", font, text_color, border_color)
         y_offset += 20
 
         await self.draw_text_with_border(draw, 100, y_offset, "Visible: ", font, text_color, border_color)
-        await self.draw_text_with_border(draw, 150, y_offset, f"{'Yes' if user_info['profileVisible'] else 'No'}", font, online_color if user_info['profileVisible'] else offline_color, border_color)
+        await self.draw_text_with_border(draw, 125, y_offset, f"{'Yes' if user_info['profileVisible'] else 'No'}", font, online_color if user_info['profileVisible'] else offline_color, border_color)
         y_offset += 20
 
-        await self.draw_text_with_border(draw, 100, y_offset, f"Level: {user_info['currentLevel']}", font, text_color, border_color)
+        await self.draw_text_with_border(draw, 100, y_offset, f"Nivel: {user_info['currentLevel']}", font, text_color, border_color)
         y_offset += 20
 
-        await self.draw_text_with_border(draw, 100, y_offset, f"Total XP: {user_info['totalExperience']}", font, text_color, border_color)
+        await self.draw_text_with_border(draw, 100, y_offset, f"Experiencia: {user_info['totalExperience']}", font, text_color, border_color)
         y_offset += 20
 
         os.makedirs(self._output_dir, exist_ok=True)
