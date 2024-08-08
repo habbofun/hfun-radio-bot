@@ -36,7 +36,8 @@ class RadioController:
             data = response.json()
             
             now_playing = data.get("now_playing", {}).get("song", {}).get("title", "None or Error")
-            return now_playing
+            current_streamer = data.get("live", {}).get("streamer_name", "AutoDJ or Error")
+            return now_playing, current_streamer
         except Exception as e:
             logger.error(f"Failed to get now playing: {e}")
             return "None or Error"
@@ -56,23 +57,6 @@ class RadioController:
         except Exception as e:
             logger.error(f"Failed to get listeners: {e}")
             return 0
-
-    async def get_current_streamers(self, station_id: str) -> str:
-        url = f"{self.config.azuracast_api_url}/station/{station_id}/streamers"
-        try:
-            response = await self.client.get(url, headers=self.headers)
-            response.raise_for_status()
-            data = response.json()
-            
-            if isinstance(data, list):
-                streamers_display_names = ", ".join([streamer.get("display_name", "Unknown") for streamer in data]) if len(data) > 0 else "None or AutoDJ"
-                return streamers_display_names
-            else:
-                logger.error("Unexpected response format")
-                return "None or Error"
-        except Exception as e:
-            logger.error(f"Failed to get current djs: {e}")
-            return "None or Error"
 
     async def get_song_history(self, station_id: str) -> str:
         url = f"{self.config.azuracast_api_url}/station/{station_id}/history"
@@ -118,9 +102,8 @@ class RadioController:
             return False
 
     async def create_or_update_embed(self) -> None:
-        now_playing = await self.get_now_playing(self.config.azuracast_station_name)
+        now_playing, current_streamer = await self.get_now_playing(self.config.azuracast_station_name)
         current_listeners = await self.get_listeners(self.config.azuracast_station_name)
-        current_streamers = await self.get_current_streamers(self.config.azuracast_station_name)
         song_history = await self.get_song_history(self.config.azuracast_station_name)
         song_queue = await self.get_song_queue(self.config.azuracast_station_name)
 
@@ -137,7 +120,7 @@ class RadioController:
             },
             {
                 "name": "🎙️ Current Streamers",
-                "value": f"```{current_streamers}```",
+                "value": f"```{current_streamer}```",
                 "inline": False
             },
             {
