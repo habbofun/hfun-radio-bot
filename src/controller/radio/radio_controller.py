@@ -119,7 +119,7 @@ class RadioController:
                 "inline": True
             },
             {
-                "name": "🎙️ Current Streamers",
+                "name": "🎙️ Current DJ",
                 "value": f"```{current_streamer}```",
                 "inline": False
             },
