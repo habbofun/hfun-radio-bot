@@ -35,11 +35,11 @@ class RadioController:
             response.raise_for_status()
             data = response.json()
             
-            now_playing = data.get("now_playing", {}).get("song", {}).get("title", "Unknown")
+            now_playing = data.get("now_playing", {}).get("song", {}).get("title", "None or Error")
             return now_playing
         except Exception as e:
             logger.error(f"Failed to get now playing: {e}")
-            return "Unknown"
+            return "None or Error"
 
     async def get_listeners(self, station_id: str) -> int:
         url = f"{self.config.azuracast_api_url}/station/{station_id}/listeners"
@@ -57,7 +57,7 @@ class RadioController:
             logger.error(f"Failed to get listeners: {e}")
             return 0
 
-    async def get_current_streamers(self, station_id: str) -> list:
+    async def get_current_streamers(self, station_id: str) -> str:
         url = f"{self.config.azuracast_api_url}/station/{station_id}/streamers"
         try:
             response = await self.client.get(url, headers=self.headers)
@@ -69,10 +69,10 @@ class RadioController:
                 return streamers_display_names
             else:
                 logger.error("Unexpected response format")
-                return []
+                return "None or Error"
         except Exception as e:
             logger.error(f"Failed to get current djs: {e}")
-            return []
+            return "None or Error"
 
     async def get_song_history(self, station_id: str) -> str:
         url = f"{self.config.azuracast_api_url}/station/{station_id}/history"
@@ -82,7 +82,7 @@ class RadioController:
             data = response.json()
 
             if isinstance(data, list):
-                song_titles = "\n".join([f"{song.get('song', {}).get('title', 'Unknown')}" for song in data if 'song' in song])
+                song_titles = "\n".join([f"{song.get('song', {}).get('title', 'Unknown')}" for song in data[:5] if 'song' in song])
                 return song_titles if song_titles else "None or Error"
             else:
                 logger.error("Unexpected response format")
@@ -99,14 +99,14 @@ class RadioController:
             data = response.json()
 
             if isinstance(data, list):
-                song_titles = "\n".join([f"{song.get('song', {}).get('title', 'Unknown')}" for song in data if 'song' in song])
-                return song_titles if song_titles else "None or Error"
+                song_titles = "\n".join([f"{song.get('song', {}).get('title', 'Unknown')}" for song in data[:5] if 'song' in song])
+                return song_titles if song_titles else None
             else:
                 logger.error("Unexpected response format")
-                return "None or Error"
+                return None
         except Exception as e:
             logger.error(f"Failed to get song queue: {e}")
-            return "None or Error"
+            return None
 
     async def update_panel_config_values(self, panel_channel_id: int, panel_message_id: int) -> bool:
         try:
@@ -124,47 +124,47 @@ class RadioController:
         song_history = await self.get_song_history(self.config.azuracast_station_name)
         song_queue = await self.get_song_queue(self.config.azuracast_station_name)
 
-        if now_playing is None:
-            now_playing = "None or Error"
+        fields = [
+            {
+                "name": "👤 Current Listeners",
+                "value": f"```{current_listeners}```",
+                "inline": True
+            },
+            {
+                "name": "🎵 Now playing",
+                "value": f"```{now_playing}```",
+                "inline": True
+            },
+            {
+                "name": "🎙️ Current Streamers",
+                "value": f"```{current_streamers}```",
+                "inline": False
+            },
+            {
+                "name": "📜 Song History",
+                "value": f"```{song_history}```",
+                "inline": True
+            }
+        ]
+
+        if song_queue:
+            fields.append({
+                "name": "🎶 Song Queue",
+                "value": f"```{song_queue}```",
+                "inline": True
+            })
 
         embed_schema = EmbedSchema(
             title="📻 Station Information",
             description=f"Here is some information about our radio station. Click in our name to go the station website.",
             author_url=self.config.azuracast_station_url,
-            fields=[
-                {
-                    "name": "👤 Current Listeners",
-                    "value": f"```{current_listeners}```",
-                    "inline": True
-                },
-                {
-                    "name": "🎵 Now playing",
-                    "value": f"```{now_playing}```",
-                    "inline": True
-                },
-                {
-                    "name": "🎙️ Current Streamers",
-                    "value": f"```{current_streamers}```",
-                    "inline": True
-                },
-                {
-                    "name": "📜 Song History",
-                    "value": f"```{song_history}```",
-                    "inline": True
-                },
-                {
-                    "name": "🎶 Song Queue",
-                    "value": f"```{song_queue}```",
-                    "inline": True
-                }
-            ],
+            fields=fields,
             color=0xF4D701
         )
 
         embed = await EmbedController().build_embed(embed_schema)
-
-        self.config = Config()
         panel_channel = self.bot.get_channel(self.config.panel_channel_id)
+
         if not panel_channel:
             logger.critical("Panel channel not found")
             return
