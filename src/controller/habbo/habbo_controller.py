@@ -88,7 +88,7 @@ class HabboController:
         avatar_image = avatar_image.resize((64, 110), Image.LANCZOS)
         
         temp_image = Image.new("RGBA", background.size)
-        temp_image.paste(avatar_image, (25, 30), avatar_image)
+        temp_image.paste(avatar_image, (25, 65), avatar_image)
         combined_image = Image.alpha_composite(background, temp_image)
 
         draw = ImageDraw.Draw(combined_image)
@@ -100,11 +100,11 @@ class HabboController:
         # Formatting the dates to day-month-year
         last_access = user_info['lastAccessTime']
         member_since = user_info['memberSince']
-        
+
         last_access_formatted = last_access[8:10] + '-' + last_access[5:7] + '-' + last_access[:4]
         member_since_formatted = member_since[8:10] + '-' + member_since[5:7] + '-' + member_since[:4]
 
-        y_offset = 40
+        y_offset = 50
         max_width = 100
 
         lines = await self.wrap_text(f"Nombre: {user_info['name']}", font, max_width)
@@ -122,7 +122,7 @@ class HabboController:
         y_offset += 10
 
         await self.draw_text_with_border(draw, 100, y_offset, "Online: ", font, text_color, border_color)
-        await self.draw_text_with_border(draw, 150, y_offset, f"{'Yes' if user_info['online'] else 'No'}", font, online_color if user_info['online'] else offline_color, border_color)
+        await self.draw_text_with_border(draw, 150, y_offset, f"{'Si' if user_info['online'] else 'No'}", font, online_color if user_info['online'] else offline_color, border_color)
         y_offset += 20
 
         await self.draw_text_with_border(draw, 100, y_offset, f"Últ. Conex.: {last_access_formatted}", font, text_color, border_color)
@@ -132,7 +132,7 @@ class HabboController:
         y_offset += 20
 
         await self.draw_text_with_border(draw, 100, y_offset, "Visible: ", font, text_color, border_color)
-        await self.draw_text_with_border(draw, 150, y_offset, f"{'Yes' if user_info['profileVisible'] else 'No'}", font, online_color if user_info['profileVisible'] else offline_color, border_color)
+        await self.draw_text_with_border(draw, 150, y_offset, f"{'Si' if user_info['profileVisible'] else 'No'}", font, online_color if user_info['profileVisible'] else offline_color, border_color)
         y_offset += 20
 
         await self.draw_text_with_border(draw, 100, y_offset, f"Nivel: {user_info['currentLevel']}", font, text_color, border_color)
