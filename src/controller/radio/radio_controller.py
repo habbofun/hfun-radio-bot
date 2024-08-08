@@ -37,6 +37,10 @@ class RadioController:
             
             now_playing = data.get("now_playing", {}).get("song", {}).get("title", "None or Error")
             current_streamer = data.get("live", {}).get("streamer_name", "AutoDJ or Error")
+
+            if current_streamer == "":
+                current_streamer = "AutoDJ or Error"
+
             return now_playing, current_streamer
         except Exception as e:
             logger.error(f"Failed to get now playing: {e}")
