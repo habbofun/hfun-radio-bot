@@ -1,5 +1,4 @@
-import os
-import httpx
+import os, httpx
 from io import BytesIO
 from loguru import logger
 from PIL import Image, ImageDraw, ImageFont
