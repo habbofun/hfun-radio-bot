@@ -45,14 +45,18 @@ class HabboController:
             return None
 
     async def wrap_text(self, text, font, max_width):
-        lines = []
-        words = text.split()
-        while words:
-            line = ''
-            while words and font.getlength(line + words[0] + ' ') <= max_width:
-                line += (words.pop(0) + ' ')
-            lines.append(line.strip())
-        return lines
+        try:
+            lines = []
+            words = text.split()
+            while words:
+                line = ''
+                while words and font.getlength(line + words[0] + ' ') <= max_width:
+                    line += (words.pop(0) + ' ')
+                lines.append(line.strip())
+            return lines
+        except Exception as e:
+            logger.error(f"Failed to wrap text: {e}")
+            return ["Error wrapping text"]
 
     async def draw_text_with_border(self, draw, x, y, text, font, text_color, border_color):
         for offset in [(1, 1), (-1, -1), (1, -1), (-1, 1), (0, 1), (1, 0), (0, -1), (-1, 0)]:
