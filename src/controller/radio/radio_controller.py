@@ -137,9 +137,10 @@ class RadioController:
                 "inline": True
             })
 
+        radio_station_hyperlink = f"[here]({self.config.app_url})"
         embed_schema = EmbedSchema(
             title="📻 Station Information",
-            description=f"Here is some information about our radio station. Click in our name to go the station website.",
+            description=f"Click {radio_station_hyperlink} to go the station website.",
             author_url=self.config.azuracast_station_url,
             fields=fields,
             color=0xF4D701
