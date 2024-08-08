@@ -22,7 +22,7 @@ class KekoCmd(commands.Cog):
             output_file = await self.create_habbo_image_and_handle_errors(username)
             if output_file:
                 await interaction.response.send_message(
-                    f"Habbo Origins: ES user `{username}` information.",
+                    f"Habbo Origins: ES user `{username}` information:",
                     file=discord.File(output_file),
                     ephemeral=hidden
                 )

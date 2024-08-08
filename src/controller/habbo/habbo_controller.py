@@ -122,17 +122,17 @@ class HabboController:
         y_offset += 10
 
         await self.draw_text_with_border(draw, 100, y_offset, "Online: ", font, text_color, border_color)
-        await self.draw_text_with_border(draw, 125, y_offset, f"{'Yes' if user_info['online'] else 'No'}", font, online_color if user_info['online'] else offline_color, border_color)
+        await self.draw_text_with_border(draw, 150, y_offset, f"{'Yes' if user_info['online'] else 'No'}", font, online_color if user_info['online'] else offline_color, border_color)
         y_offset += 20
 
-        await self.draw_text_with_border(draw, 100, y_offset, f"Visto: {last_access_formatted}", font, text_color, border_color)
+        await self.draw_text_with_border(draw, 100, y_offset, f"Última Conexión: {last_access_formatted}", font, text_color, border_color)
         y_offset += 20
 
         await self.draw_text_with_border(draw, 100, y_offset, f"Registro: {member_since_formatted}", font, text_color, border_color)
         y_offset += 20
 
         await self.draw_text_with_border(draw, 100, y_offset, "Visible: ", font, text_color, border_color)
-        await self.draw_text_with_border(draw, 125, y_offset, f"{'Yes' if user_info['profileVisible'] else 'No'}", font, online_color if user_info['profileVisible'] else offline_color, border_color)
+        await self.draw_text_with_border(draw, 150, y_offset, f"{'Yes' if user_info['profileVisible'] else 'No'}", font, online_color if user_info['profileVisible'] else offline_color, border_color)
         y_offset += 20
 
         await self.draw_text_with_border(draw, 100, y_offset, f"Nivel: {user_info['currentLevel']}", font, text_color, border_color)
