@@ -48,11 +48,23 @@ class HabboController:
         try:
             lines = []
             words = text.split()
-            while words:
-                line = ''
-                while words and font.getlength(line + words[0] + ' ') <= max_width:
-                    line += (words.pop(0) + ' ')
-                lines.append(line.strip())
+            current_line = []
+
+            for word in words:
+                # Test the width of the line with the next word added
+                test_line = ' '.join(current_line + [word])
+                if font.getlength(test_line) <= max_width:
+                    current_line.append(word)
+                else:
+                    # If adding the word exceeds the max_width, finalize the current line
+                    if current_line:  # Avoid adding empty lines
+                        lines.append(' '.join(current_line))
+                    current_line = [word]
+
+            # Add the last line
+            if current_line:
+                lines.append(' '.join(current_line))
+
             return lines
         except Exception as e:
             logger.error(f"Failed to wrap text: {e}")
@@ -166,4 +178,3 @@ class HabboController:
 
     async def __aexit__(self, _exc_type, _exc_value, _traceback):
         await self.client.aclose()
-
