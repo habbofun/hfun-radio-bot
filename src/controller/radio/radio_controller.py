@@ -44,7 +44,7 @@ class RadioController:
             return now_playing, current_streamer
         except Exception as e:
             logger.error(f"Failed to get now playing: {e}")
-            return "None or Error"
+            return "None or Error", "AutoDJ or Error"
 
     async def get_listeners(self, station_id: str) -> int:
         url = f"{self.config.azuracast_api_url}/station/{station_id}/listeners"
