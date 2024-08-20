@@ -16,9 +16,12 @@ class SyncCommand(commands.Cog):
     async def process_sync_command(self, ctx: commands.Context, guild: discord.Guild = None):
         try:
             await ctx.message.delete()
-        except:
+        except discord.errors.NotFound:
             logger.warning("Tried to delete a message that was not found.")
-            pass
+        except discord.errors.Forbidden:
+            logger.warning("Bot does not have permission to delete the message.")
+        except Exception as e:
+            logger.warning(f"Unexpected error while trying to delete the message: {e}")
 
         try:
             if guild is None:
@@ -34,13 +37,22 @@ class SyncCommand(commands.Cog):
             # Delete the success message after a delay
             await msg.delete(delay=5)
 
+        except discord.errors.Forbidden:
+            error_message = "❌ Failed to sync slash commands: Bot does not have permission to send messages."
+            logger.critical(error_message)
+        except discord.errors.HTTPException as e:
+            error_message = f"❌ Failed to sync slash commands: {e}"
+            logger.critical(error_message)
         except Exception as e:
             error_message = f"❌ Failed to sync slash commands: {e}"
+            logger.critical(error_message)
+        finally:
             try:
                 await ctx.send(error_message, delete_after=10)  # Optionally delete the error message after a delay
+            except discord.errors.Forbidden:
+                logger.critical("Failed to send error message: Bot does not have permission to send messages.")
             except Exception as send_error:
                 logger.critical(f"Failed to send error message: {send_error}")
-            logger.critical(error_message)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(SyncCommand(bot))
