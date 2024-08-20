@@ -1,4 +1,5 @@
 import httpx, discord
+from typing import Tuple, Optional
 from loguru import logger
 from discord.ext import commands
 from src.helper.config import Config
@@ -7,6 +8,9 @@ from src.controller.discord.embed_controller import EmbedController
 
 class RadioController:
     _instance = None
+    ERROR_MESSAGE = "None or Error"
+    AUTODJ_OR_ERROR = "AutoDJ or Error"
+    UNEXPECTED_RESPONSE_FORMAT = "Unexpected response format"
 
     @classmethod
     def __new__(cls, *args, **kwargs):
@@ -28,23 +32,23 @@ class RadioController:
 
         self._initialized = True
 
-    async def get_now_playing(self, station_id: str) -> str:
+    async def get_now_playing(self, station_id: str) ->  Tuple[str, str]:
         url = f"{self.config.azuracast_api_url}/nowplaying/{station_id}"
         try:
             response = await self.client.get(url, headers=self.headers)
             response.raise_for_status()
             data = response.json()
             
-            now_playing = data.get("now_playing", {}).get("song", {}).get("title", "None or Error")
-            current_streamer = data.get("live", {}).get("streamer_name", "AutoDJ or Error")
+            now_playing = data.get("now_playing", {}).get("song", {}).get("title", self.ERROR_MESSAGE)
+            current_streamer = data.get("live", {}).get("streamer_name", self.AUTODJ_OR_ERROR)
 
             if current_streamer == "":
-                current_streamer = "AutoDJ or Error"
+                current_streamer = self.AUTODJ_OR_ERROR
 
             return now_playing, current_streamer
         except Exception as e:
             logger.error(f"Failed to get now playing: {e}")
-            return "None or Error", "AutoDJ or Error"
+            return self.ERROR_MESSAGE, self.AUTODJ_OR_ERROR
 
     async def get_listeners(self, station_id: str) -> int:
         url = f"{self.config.azuracast_api_url}/station/{station_id}/listeners"
@@ -56,7 +60,7 @@ class RadioController:
             if isinstance(data, list):
                 return len(data)
             else:
-                logger.error("Unexpected response format")
+                logger.error(self.UNEXPECTED_RESPONSE_FORMAT)
                 return 0
         except Exception as e:
             logger.error(f"Failed to get listeners: {e}")
@@ -71,15 +75,15 @@ class RadioController:
 
             if isinstance(data, list):
                 song_titles = "\n".join([f"{song.get('song', {}).get('title', 'Unknown')}" for song in data[:5] if 'song' in song])
-                return song_titles if song_titles else "None or Error"
+                return song_titles if song_titles else self.ERROR_MESSAGE
             else:
-                logger.error("Unexpected response format")
-                return "None or Error"
+                logger.error(self.UNEXPECTED_RESPONSE_FORMAT)
+                return self.ERROR_MESSAGE
         except Exception as e:
             logger.error(f"Failed to get song history: {e}")
-            return "None or Error"
+            return self.ERROR_MESSAGE
 
-    async def get_song_queue(self, station_id: str) -> str:
+    async def get_song_queue(self, station_id: str) -> Optional[list[str]]:
         url = f"{self.config.azuracast_api_url}/station/{station_id}/queue"
         try:
             response = await self.client.get(url, headers=self.headers)
@@ -90,7 +94,7 @@ class RadioController:
                 song_titles = "\n".join([f"{song.get('song', {}).get('title', 'Unknown')}" for song in data[:5] if 'song' in song])
                 return song_titles if song_titles else None
             else:
-                logger.error("Unexpected response format")
+                logger.error(self.UNEXPECTED_RESPONSE_FORMAT)
                 return None
         except Exception as e:
             logger.error(f"Failed to get song queue: {e}")
