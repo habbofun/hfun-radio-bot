@@ -21,7 +21,7 @@ class Bot(commands.Bot):
     async def setup_hook(self) -> None:
         try:
             os.system("cls||clear")
-            logger.info(f"Starting bot...")
+            logger.info("Starting bot...")
 
             # Check for file inputs
             logger.debug("Checking for file inputs...")
@@ -53,7 +53,7 @@ class Bot(commands.Bot):
             self.loop.create_task(self.command_worker())
 
             # Done!
-            logger.info(f"Setup completed!")
+            logger.info("Setup completed!")
         except Exception:
             logger.critical(f"Error setting up bot: {format_exc()}")
             exit()
@@ -64,21 +64,26 @@ class Bot(commands.Bot):
             try:
                 await coro
             except discord.errors.NotFound as e:
-                logger.critical(f"Failed to respond to interaction: {e}")
-                if not interaction.response.is_done():
-                    try:
-                        await interaction.followup.send("An error occurred while executing your command. Please notify an Admin.", ephemeral=True)
-                    except Exception as followup_error:
-                        logger.critical(f"Failed to send follow-up message: {followup_error}")
+                await self.handle_not_found_error(interaction, e)
             except Exception as e:
-                logger.critical(f"Unexpected error: {e}")
-                if hasattr(interaction, 'followup') and not interaction.response.is_done():
-                    try:
-                        await interaction.followup.send("An error occurred while executing your command. Please notify an Admin.", ephemeral=True)
-                    except Exception as followup_error:
-                        logger.critical(f"Failed to send follow-up message: {followup_error}")
+                await self.handle_generic_error(interaction, e)
             finally:
                 self.command_queue.task_done()
+
+    async def handle_not_found_error(self, interaction, error):
+        logger.critical(f"Failed to respond to interaction: {error}")
+        await self.send_followup_error_message(interaction, "An error occurred while executing your command. Please notify an Admin.")
+
+    async def handle_generic_error(self, interaction, error):
+        logger.critical(f"Unexpected error: {error}")
+        await self.send_followup_error_message(interaction, "An error occurred while executing your command. Please notify an Admin.")
+
+    async def send_followup_error_message(self, interaction, message):
+        if hasattr(interaction, 'followup') and not interaction.response.is_done():
+            try:
+                await interaction.followup.send(message, ephemeral=True)
+            except Exception as followup_error:
+                logger.critical(f"Failed to send follow-up message: {followup_error}")
 
     # Function to shutdown the bot
     async def close(self) -> None:
