@@ -17,7 +17,7 @@ class DatabaseLoader:
         Initializes the database(s) by creating the necessary tables.
         """
         try:
-            self.battleball_db_service.initialize()
+            await self.battleball_db_service.initialize()
         except Exception as e:
             logger.critical(f"Error setting up database(s): {e}")
             traceback.print_exc()
