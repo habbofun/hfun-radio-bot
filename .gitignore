@@ -154,5 +154,6 @@ cython_debug/
 
 # Bot files
 config.yaml
-ai_bot.log
+*.log
+/src/assets/proxies.txt
 /src/controller/habbo/temp
