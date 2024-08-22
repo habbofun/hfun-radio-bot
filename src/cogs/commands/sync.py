@@ -34,7 +34,6 @@ class SyncCommand(commands.Cog):
             
             logger.info("Slash commands were synced by an admin.")
 
-            # Delete the success message after a delay
             await msg.delete(delay=5)
 
         except discord.errors.Forbidden:

@@ -45,17 +45,14 @@ class HabboController:
             current_line = []
 
             for word in words:
-                # Test the width of the line with the next word added
                 test_line = ' '.join(current_line + [word])
                 if font.getlength(test_line) <= max_width:
                     current_line.append(word)
                 else:
-                    # If adding the word exceeds the max_width, finalize the current line
-                    if current_line:  # Avoid adding empty lines
+                    if current_line:
                         lines.append(' '.join(current_line))
                     current_line = [word]
 
-            # Add the last line
             if current_line:
                 lines.append(' '.join(current_line))
 
@@ -102,12 +99,11 @@ class HabboController:
         combined_image = Image.alpha_composite(background, temp_image)
 
         draw = ImageDraw.Draw(combined_image)
-        text_color = (255, 255, 255)  # White color
-        border_color = (0, 0, 0)  # Black color for border
-        online_color = (0, 255, 0)  # Green color
-        offline_color = (255, 0, 0)  # Red color
+        text_color = (255, 255, 255)
+        border_color = (0, 0, 0)
+        online_color = (0, 255, 0)
+        offline_color = (255, 0, 0)
         
-        # Formatting the dates to day-month-year
         last_access = user_info['lastAccessTime']
         member_since = user_info['memberSince']
 

@@ -21,7 +21,6 @@ class OnReady(commands.Cog):
         divider = Center.XCenter(Colorate.Vertical(Colors.white_to_blue, "────────────────────────────────────────────", 1))
         print(f"{centered_logo}\n{divider}\n\n")
 
-        # Make the views persistent
         logger.debug("Setting persistent views...")
         self.bot.add_view(BattleballPanelView())
 

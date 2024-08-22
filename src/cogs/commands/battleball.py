@@ -13,25 +13,20 @@ class BattleLeaderboard(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.command(name="battleball", description="Command to send the battleball leaderboard.")
     async def battle_leaderboard_command(self, interaction: discord.Interaction, battleball_channel_id: discord.TextChannel = None):
-        # Ensure that battleball_channel_id is set before deferring or starting the task
         if battleball_channel_id is None:
             battleball_channel_id = interaction.channel
 
-        # Acknowledge the command and start the background task
         await interaction.response.defer(thinking=True)
         self.bot.loop.create_task(self.process_battle_leaderboard_task(interaction, battleball_channel_id))
 
     async def process_battle_leaderboard_task(self, interaction: discord.Interaction, battleball_channel_id: discord.TextChannel):
         try:
-            # Send an initial loading message in the specified channel
             battleball_message = await battleball_channel_id.send("Loading BattleBall leaderboard...", view=BattleballPanelView())
 
-            # Update the battleball config with the new channel and message IDs
             if not await self.battleball_score_manager.update_battleball_config_values(battleball_channel_id.id, battleball_message.id):
                 await battleball_channel_id.send("Failed to update battleball config values.", ephemeral=True)
                 return
 
-            # Create or update the leaderboard embed
             await self.battleball_score_manager.create_or_update_embed()
         except Exception as e:
             logger.error(f"An error occurred while trying to get the leaderboard: {e}")

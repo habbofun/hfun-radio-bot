@@ -40,7 +40,7 @@ class BattleballController:
     async def get_match_ids(self, bouncer_player_id, start_time=None, end_time=None):
         match_ids = []
         offset = 0
-        limit = 100  # Smaller limit to ensure proper pagination
+        limit = 100
 
         while True:
             url = f"{self.BASE_URL}matches/v1/{bouncer_player_id}/ids"
@@ -56,9 +56,8 @@ class BattleballController:
                 break
 
             match_ids.extend(new_match_ids)
-            offset += limit  # Increase the offset to get the next batch
+            offset += limit
 
-            # If we receive fewer matches than the limit, we're done
             if len(new_match_ids) < limit:
                 break
 
@@ -66,12 +65,10 @@ class BattleballController:
         return match_ids
 
     async def get_match_data(self, match_id):
-        """Fetches data for a single match."""
         url = f"{self.BASE_URL}matches/v1/{match_id}"
         return await self.request_with_retry(url)
 
     def fetch_match_data_threaded(self, match_id):
-        """Function to be executed in a separate thread"""
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         return loop.run_until_complete(self.get_match_data(match_id))
@@ -79,7 +76,6 @@ class BattleballController:
     async def fetch_all_match_data(self, match_ids):
         results = []
 
-        # Use multithreading to fetch match data concurrently
         with ThreadPoolExecutor(max_workers=self.max_concurrent_requests) as executor:
             loop = asyncio.get_event_loop()
             futures = [loop.run_in_executor(executor, self.fetch_match_data_threaded, match_id) for match_id in match_ids]

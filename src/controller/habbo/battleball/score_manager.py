@@ -16,13 +16,13 @@ class ScoreManager:
         self.config = Config()
         self.api_controller = BattleballController()
         self.db_service = BattleballDatabaseService()
-        self.cache = {}  # In-memory cache for quick access
+        self.cache = {}
     
     async def initialize(self):
         await self.db_service.initialize()
     
     async def process_user_scores(self, username):
-        start_time = time.time()  # Start timing the process
+        start_time = time.time()
 
         if username in self.cache and (time.time() - self.cache[username]['last_updated']) < 3600:
             #logger.info(f"Returning cached score for {username}.")
@@ -48,7 +48,7 @@ class ScoreManager:
             'last_updated': time.time()
         }
 
-        end_time = time.time()  # End timing the process
+        end_time = time.time()
         elapsed_time = end_time - start_time
         #logger.info(f"Time taken to gather and process all info for {username}: {elapsed_time:.2f} seconds")
 
@@ -88,6 +88,7 @@ class ScoreManager:
             return result[0] if result else None
 
     async def get_leaderboard(self, mobile_version: bool = False):
+        leaderboard = await self.db_service.get_leaderboard()
         if mobile_version:
             formatted_leaderboard = [
                 (
@@ -101,7 +102,6 @@ class ScoreManager:
             ]
             return "\n".join(formatted_leaderboard)
 
-        leaderboard = await self.db_service.get_leaderboard()
         formatted_leaderboard = [
             (idx + 1, username, score, ranked_matches, non_ranked_matches)
             for idx, (username, score, ranked_matches, non_ranked_matches) in enumerate(leaderboard)

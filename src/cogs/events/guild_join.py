@@ -11,7 +11,6 @@ class GuildJoin(commands.Cog):
     async def on_guild_join(self, guild):
 
         try:
-            # Sync the commands
             await self.bot.tree.sync()
         except discord.errors.HTTPException as e:
             logger.critical(f"❌ Failed to sync slash commands: {e}")
@@ -20,7 +19,6 @@ class GuildJoin(commands.Cog):
             logger.critical(f"❌ An unexpected error occurred while syncing commands: {e}")
             return
 
-        # Send a DM to the guild owner
         try:
             await guild.owner.send(f"Hello `{guild.owner.name}`, your guild `{guild.name}` has successfully synced commands with the bot!")
         except discord.errors.Forbidden:
@@ -29,8 +27,7 @@ class GuildJoin(commands.Cog):
             logger.error(f"❌ Failed to send a DM to the guild owner of {guild.name} ({guild.owner.id}): {e}")
         except Exception as e:
             logger.error(f"❌ An unexpected error occurred while sending a DM to the guild owner of {guild.name} ({guild.owner.id}): {e}")
-        
-        # Log the event
+
         logger.info(f"✅ Bot joined Guild: {guild.name}. ({guild.id})")
 
 async def setup(bot: commands.Bot) -> None:
