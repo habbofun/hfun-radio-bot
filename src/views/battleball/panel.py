@@ -20,7 +20,7 @@ class BattleballPanelView(discord.ui.View):
 
     @discord.ui.button(label='📲 Mobile Version', style=discord.ButtonStyle.green, custom_id='battleball_panel:mobile_version')
     async def create_room_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        leaderboard_mobile_string = self.battleball_score_manager.get_leaderboard(mobile_version=True)
+        leaderboard_mobile_string = await self.battleball_score_manager.get_leaderboard(mobile_version=True)
         fields = [
             {
                 "name": "📃 Ranking",
