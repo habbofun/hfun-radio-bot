@@ -1,4 +1,4 @@
-import time, discord, aiosqlite
+import time, aiosqlite, discord
 from loguru import logger
 from tabulate import tabulate
 from discord.ext import commands
@@ -44,8 +44,9 @@ class ScoreManager:
         """
         start_time = time.time()
 
-        if username in self.cache and (time.time() - self.cache[username]['last_updated']) < 3600:
-            return self.cache[username]['total_score']
+        cache = await self.db_service.get_user_cache(username)
+        if cache and (time.time() - cache['last_updated']) < 3600:
+            return cache['total_score']
 
         user = await self.db_service.get_user(username)
         if user:
@@ -55,9 +56,7 @@ class ScoreManager:
             await self.db_service.insert_user(username, bouncer_player_id)
 
         match_ids = await self.api_controller.get_match_ids(bouncer_player_id)
-
         match_data_list = await self.api_controller.fetch_all_match_data(match_ids)
-
         await self._process_all_matches(match_data_list, username, bouncer_player_id)
 
         total_score = await self.db_service.get_user_score(username)
@@ -83,18 +82,21 @@ class ScoreManager:
         ranked_matches = 0
         non_ranked_matches = 0
 
+        user = await self.db_service.get_user(username)
+        user_id = user[0]
+
         for match_data in match_data_list:
             match_id = match_data['metadata']['matchId']
             is_ranked = match_data['info']['ranked']
 
-            if not await self.db_service.is_match_processed(match_id):
+            if not await self.db_service.is_match_processed_for_user(user_id, match_id):
                 if is_ranked:
                     ranked_matches += 1
                     await self._process_match(match_data, bouncer_player_id)
                 else:
                     non_ranked_matches += 1
 
-                await self.db_service.mark_match_as_processed(match_id)
+                await self.db_service.mark_match_as_processed_for_user(user_id, match_id)
 
         await self.db_service.update_user_matches(username, ranked_matches, non_ranked_matches)
 
@@ -182,7 +184,7 @@ class ScoreManager:
         leaderboard_string = await self.get_leaderboard()
 
         # Ensure the leaderboard string is within Discord's 1024-character limit.
-        if len(leaderboard_string) > 1024:
+        if (len(leaderboard_string)) > 1024:
             leaderboard_string = leaderboard_string[:1020] + "..."  # Truncate and add ellipsis
 
         fields = [
