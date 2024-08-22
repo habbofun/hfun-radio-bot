@@ -9,12 +9,32 @@ from src.manager.file_manager import FileManager
 logger.add(Config().log_file, mode="w+")
 
 class Bot(commands.Bot):
+    """
+    Represents a bot that extends the `commands.Bot` class.
+
+    Attributes:
+        file_manager (FileManager): The file manager instance.
+        command_queue (asyncio.Queue): The queue for storing commands.
+
+    Methods:
+        __init__: Initializes the Bot instance.
+        setup_hook: Sets up the bot by checking inputs, setting up databases, loading cogs, and starting the command worker.
+        command_worker: Handles commands from the command queue.
+        handle_not_found_error: Handles the "not found" error when responding to an interaction.
+        handle_generic_error: Handles generic errors that occur while executing a command.
+        send_followup_error_message: Sends a follow-up error message to the interaction.
+        close: Closes the bot.
+    """
+
     def __init__(self) -> None:
         self.file_manager = FileManager()
         self.command_queue = asyncio.Queue()
         super().__init__(command_prefix=Config().bot_prefix, help_command=None, intents=discord.Intents.all())
 
     async def setup_hook(self) -> None:
+        """
+        Sets up the bot by checking inputs, setting up databases, loading cogs, and starting the command worker.
+        """
         try:
             os.system("cls||clear")
             logger.info("Starting bot...")
@@ -48,6 +68,9 @@ class Bot(commands.Bot):
             exit()
 
     async def command_worker(self):
+        """
+        Handles commands from the command queue.
+        """
         while True:
             interaction, coro = await self.command_queue.get()
             try:
@@ -58,14 +81,35 @@ class Bot(commands.Bot):
                 self.command_queue.task_done()
 
     async def handle_not_found_error(self, interaction, error):
+        """
+        Handles the "not found" error when responding to an interaction.
+
+        Args:
+            interaction: The interaction object.
+            error: The error that occurred.
+        """
         logger.critical(f"Failed to respond to interaction: {error}")
         await self.send_followup_error_message(interaction, "An error occurred while executing your command. Please notify an Admin.")
 
     async def handle_generic_error(self, interaction, error):
+        """
+        Handles generic errors that occur while executing a command.
+
+        Args:
+            interaction: The interaction object.
+            error: The error that occurred.
+        """
         logger.critical(f"Unexpected error: {error}")
         await self.send_followup_error_message(interaction, "An error occurred while executing your command. Please notify an Admin.")
 
     async def send_followup_error_message(self, interaction, message):
+        """
+        Sends a follow-up error message to the interaction.
+
+        Args:
+            interaction: The interaction object.
+            message: The error message to send.
+        """
         if hasattr(interaction, 'followup') and not interaction.response.is_done():
             try:
                 await interaction.followup.send(message, ephemeral=True)
@@ -73,6 +117,9 @@ class Bot(commands.Bot):
                 logger.critical(f"Failed to send follow-up message: {followup_error}")
 
     async def close(self) -> None:
+        """
+        Closes the bot.
+        """
         await super().close()
 
 if __name__ == "__main__":
