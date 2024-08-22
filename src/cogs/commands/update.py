@@ -1,4 +1,5 @@
 import discord
+from loguru import logger
 from discord.ext import commands
 from discord import app_commands
 from src.database.service.battleball_service import BattleballDatabaseService
@@ -12,23 +13,27 @@ class BattleUpdate(commands.Cog):
 
     @app_commands.command(name="update", description="Command to update a battleball profile's data.")
     async def battle_update_command(self, interaction: discord.Interaction, username: str):
-        await self.db_service.initialize()
-
         added_by = interaction.user.id
+        added_by_name = interaction.user.name
         position = await self.db_service.add_to_queue(username, added_by)
-        
+
         if position == 1:
             await interaction.response.send_message(
-                f"{username} is now being processed. You'll receive a notification once it's done.",
+                f"The job for `{username}` is now being processed.\nYou'll receive a notification once it's done.",
                 ephemeral=True
             )
+            await self.log_queue_addition(username, added_by_name, position)
             if not self.worker.running:
                 await self.worker.start()
         else:
+            await self.log_queue_addition(username, added_by_name, position)
             await interaction.response.send_message(
-                f"{username} was added to the queue at position {position}.",
+                f"The user `{username}` is already at the queue at position `{position}`.",
                 ephemeral=True
             )
+
+    async def log_queue_addition(self, username: str, added_by_name: str, position: int):
+        logger.info(f"User '{added_by_name}' added '{username}' to the queue at position '{position}'")
 
     @app_commands.command(name="leaderboard", description="Display the BattleBall leaderboard.")
     async def leaderboard_command(self, interaction: discord.Interaction, mobile_version: bool = False):
