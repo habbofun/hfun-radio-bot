@@ -3,13 +3,24 @@ from discord.ext import commands
 import discord
 
 class GuildJoin(commands.Cog):
+    """
+    A class representing a Discord bot event handler for when the bot joins a guild.
+    """
 
     def __init__(self, bot):
         self.bot = bot
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
+        """
+        An event handler that is triggered when the bot joins a guild.
 
+        Parameters:
+        - guild (discord.Guild): The guild that the bot joined.
+
+        Returns:
+        None
+        """
         try:
             await self.bot.tree.sync()
         except discord.errors.HTTPException as e:

@@ -4,6 +4,12 @@ from discord.ext import commands
 from src.helper.config import Config
 
 class SyncCommand(commands.Cog):
+    """
+    A Discord bot command cog for syncing slash commands.
+
+    This cog provides a command to sync slash commands globally or in a specific guild.
+    """
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.config = Config()
@@ -11,9 +17,32 @@ class SyncCommand(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def sync(self, ctx: commands.Context, guild: discord.Guild = None):
+        """
+        Syncs slash commands.
+
+        Parameters:
+        - ctx (commands.Context): The context of the command.
+        - guild (discord.Guild, optional): The guild to sync slash commands in. Defaults to None.
+
+        Raises:
+        - discord.errors.Forbidden: If the bot does not have permission to send messages.
+        - discord.errors.HTTPException: If an HTTP exception occurs during the sync process.
+        - Exception: If any other unexpected error occurs.
+
+        Note:
+        - If guild is None, the slash commands will be synced globally.
+        - If guild is specified, the slash commands will be synced in the specified guild.
+        """
         await self.bot.command_queue.put((ctx, self.process_sync_command(ctx, guild)))
 
     async def process_sync_command(self, ctx: commands.Context, guild: discord.Guild = None):
+        """
+        Processes the sync command.
+
+        Parameters:
+        - ctx (commands.Context): The context of the command.
+        - guild (discord.Guild, optional): The guild to sync slash commands in. Defaults to None.
+        """
         try:
             await ctx.message.delete()
         except discord.errors.NotFound:

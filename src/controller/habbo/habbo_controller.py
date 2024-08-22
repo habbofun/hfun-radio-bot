@@ -6,7 +6,10 @@ from PIL import Image, ImageDraw, ImageFont
 
 @Singleton
 class HabboController:
+    """Controller class for handling Habbo-related operations."""
+
     def __init__(self):
+        """Initialize the HabboController class."""
         if hasattr(self, '_initialized') and self._initialized:
             return
 
@@ -19,6 +22,14 @@ class HabboController:
         self._base_background_path = os.path.abspath(os.path.join(base_dir, "../../assets/habbo_consola_small.png"))
 
     async def get_user_info(self, username):
+        """Get user information from the Habbo API.
+
+        Args:
+            username (str): The username of the user.
+
+        Returns:
+            dict: User information as a dictionary, or None if the request fails.
+        """
         url = f"https://origins.habbo.es/api/public/users?name={username}"
         try:
             response = await self.client.get(url)
@@ -29,6 +40,14 @@ class HabboController:
             return None
 
     async def get_avatar_image(self, figure_string):
+        """Get the avatar image of a user.
+
+        Args:
+            figure_string (str): The figure string of the user.
+
+        Returns:
+            PIL.Image.Image: The avatar image as a PIL Image object, or None if the request fails.
+        """
         url = f"https://www.habbo.es/habbo-imaging/avatarimage?&figure={figure_string}"
         try:
             response = await self.client.get(url)
@@ -39,6 +58,16 @@ class HabboController:
             return None
 
     async def wrap_text(self, text, font, max_width):
+        """Wrap text to fit within a maximum width.
+
+        Args:
+            text (str): The text to wrap.
+            font (PIL.ImageFont.FreeTypeFont): The font used for rendering the text.
+            max_width (int): The maximum width of each line.
+
+        Returns:
+            list: A list of wrapped lines.
+        """
         try:
             lines = []
             words = text.split()
@@ -62,11 +91,30 @@ class HabboController:
             return ["Error wrapping text"]
 
     async def draw_text_with_border(self, draw, x, y, text, font, text_color, border_color):
+        """Draw text with a border.
+
+        Args:
+            draw (PIL.ImageDraw.ImageDraw): The drawing context.
+            x (int): The x-coordinate of the text.
+            y (int): The y-coordinate of the text.
+            text (str): The text to draw.
+            font (PIL.ImageFont.FreeTypeFont): The font used for rendering the text.
+            text_color (tuple): The RGB color tuple for the text.
+            border_color (tuple): The RGB color tuple for the border.
+        """
         for offset in [(1, 1), (-1, -1), (1, -1), (-1, 1), (0, 1), (1, 0), (0, -1), (-1, 0)]:
             draw.text((x + offset[0], y + offset[1]), text, font=font, fill=border_color)
         draw.text((x, y), text, font=font, fill=text_color)
 
     async def create_habbo_image(self, username):
+        """Create a Habbo image with user information.
+
+        Args:
+            username (str): The username of the user.
+
+        Returns:
+            str: The filepath of the created image, or None if the image creation fails.
+        """
         user_info = await self.get_user_info(username)
         if not user_info:
             return
@@ -154,6 +202,11 @@ class HabboController:
         return output_file
 
     async def delete_image(self, username: str):
+        """Delete the Habbo image associated with a username.
+
+        Args:
+            username (str): The username of the user.
+        """
         file_path = os.path.join(self._output_dir, f"{username}_habbo_console.png")
 
         try:
@@ -163,8 +216,10 @@ class HabboController:
             logger.critical(f"Failed to delete image: {e}")
 
     async def __aenter__(self):
+        """Enter the asynchronous context manager."""
         self.client = httpx.AsyncClient(timeout=None)
         return self
 
     async def __aexit__(self, _exc_type, _exc_value, _traceback):
+        """Exit the asynchronous context manager."""
         await self.client.aclose()

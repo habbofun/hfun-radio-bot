@@ -5,6 +5,10 @@ from discord import app_commands
 from src.controller.habbo.battleball.score_manager import ScoreManager
 
 class BattleUpdate(commands.Cog):
+    """
+    A class representing a Discord cog for updating battleball profiles.
+    """
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.battleball_score_manager = ScoreManager(bot)

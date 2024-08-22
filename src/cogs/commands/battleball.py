@@ -6,6 +6,12 @@ from src.views.battleball.panel import BattleballPanelView
 from src.controller.habbo.battleball.score_manager import ScoreManager
 
 class BattleLeaderboard(commands.Cog):
+    """
+    A class representing the BattleLeaderboard cog.
+
+    This cog provides commands and functionality related to the BattleBall leaderboard.
+    """
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.battleball_score_manager = ScoreManager(bot)

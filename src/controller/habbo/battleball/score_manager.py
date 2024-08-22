@@ -11,21 +11,40 @@ from src.controller.habbo.battleball.battleball_controller import BattleballCont
 
 @Singleton
 class ScoreManager:
+    """Class responsible for managing scores in the BattleBall game."""
+
     def __init__(self, bot: commands.Bot):
+        """
+        Initialize the ScoreManager.
+
+        Args:
+            bot (commands.Bot): The Discord bot instance.
+        """
         self.bot = bot
         self.config = Config()
         self.api_controller = BattleballController()
         self.db_service = BattleballDatabaseService()
         self.cache = {}
-    
+
     async def initialize(self):
+        """
+        Initialize the ScoreManager by initializing the database service.
+        """
         await self.db_service.initialize()
-    
+
     async def process_user_scores(self, username):
+        """
+        Process the scores for a given user.
+
+        Args:
+            username (str): The username of the user.
+
+        Returns:
+            int: The total score of the user.
+        """
         start_time = time.time()
 
         if username in self.cache and (time.time() - self.cache[username]['last_updated']) < 3600:
-            #logger.info(f"Returning cached score for {username}.")
             return self.cache[username]['total_score']
 
         user = await self.db_service.get_user(username)
@@ -50,11 +69,17 @@ class ScoreManager:
 
         end_time = time.time()
         elapsed_time = end_time - start_time
-        #logger.info(f"Time taken to gather and process all info for {username}: {elapsed_time:.2f} seconds")
-
         return total_score
 
     async def _process_all_matches(self, match_data_list, username, bouncer_player_id):
+        """
+        Process all the matches for a given user.
+
+        Args:
+            match_data_list (list): A list of match data.
+            username (str): The username of the user.
+            bouncer_player_id (str): The bouncer player ID of the user.
+        """
         ranked_matches = 0
         non_ranked_matches = 0
 
@@ -74,6 +99,13 @@ class ScoreManager:
         await self.db_service.update_user_matches(username, ranked_matches, non_ranked_matches)
 
     async def _process_match(self, match_data, bouncer_player_id):
+        """
+        Process a single match for a given user.
+
+        Args:
+            match_data (dict): The match data.
+            bouncer_player_id (str): The bouncer player ID of the user.
+        """
         for participant in match_data['info']['participants']:
             if participant['gamePlayerId'] == bouncer_player_id:
                 user_score = participant['gameScore']
@@ -82,12 +114,30 @@ class ScoreManager:
                 break
 
     async def _get_username_by_bouncer_id(self, bouncer_player_id):
+        """
+        Get the username associated with a given bouncer player ID.
+
+        Args:
+            bouncer_player_id (str): The bouncer player ID.
+
+        Returns:
+            str: The username associated with the bouncer player ID.
+        """
         async with aiosqlite.connect(self.db_service.db_path) as db:
             cursor = await db.execute('SELECT username FROM users WHERE bouncer_player_id = ?', (bouncer_player_id,))
             result = await cursor.fetchone()
             return result[0] if result else None
 
     async def get_leaderboard(self, mobile_version: bool = False):
+        """
+        Get the leaderboard.
+
+        Args:
+            mobile_version (bool, optional): Whether to format the leaderboard for mobile version. Defaults to False.
+
+        Returns:
+            str: The formatted leaderboard.
+        """
         leaderboard = await self.db_service.get_leaderboard()
         if mobile_version:
             formatted_leaderboard = [
@@ -109,6 +159,16 @@ class ScoreManager:
         return tabulate(formatted_leaderboard, headers=["Position", "Username", "Score", "Ranked Matches", "Non-Ranked Matches"], tablefmt="pretty")
 
     async def update_battleball_config_values(self, channel_id: int, message_id: int) -> bool:
+        """
+        Update the BattleBall configuration values.
+
+        Args:
+            channel_id (int): The ID of the channel.
+            message_id (int): The ID of the message.
+
+        Returns:
+            bool: True if the values were successfully updated, False otherwise.
+        """
         if not self.config.change_value("battleball_channel_id", channel_id):
             return False
 
@@ -116,6 +176,9 @@ class ScoreManager:
             return False
 
     async def create_or_update_embed(self) -> None:
+        """
+        Create or update the leaderboard embed.
+        """
         leaderboard_string = await self.get_leaderboard()
 
         fields = [

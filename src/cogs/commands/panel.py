@@ -6,6 +6,10 @@ from src.helper.config import Config
 from src.controller.radio.radio_controller import RadioController
 
 class InfoPanel(commands.Cog):
+    """
+    A Discord bot cog for managing the information panel about the radio station.
+    """
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.config = Config()

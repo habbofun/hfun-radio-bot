@@ -28,12 +28,21 @@ azuracast_api_key:
 
 @Singleton
 class FileManager:
+    """
+    A class that manages files for the bot.
+    """
 
     def __init__(self):
+        """
+        Initializes the FileManager class.
+        """
         self.config = Config()
 
     def check_input(self):
-
+        """
+        Checks if the required files and directories exist.
+        If not, creates them.
+        """
         if not os.path.isfile("config.yaml"):
             logger.info("Config file not found, creating one...")
             open("config.yaml", "w+").write(defaultConfig)

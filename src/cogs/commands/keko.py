@@ -7,6 +7,24 @@ from httpx import HTTPStatusError, RequestError
 from src.controller.habbo.habbo_controller import HabboController
 
 class KekoCmd(commands.Cog):
+    """
+    A class representing the Keko command cog.
+
+    This cog provides functionality to send information about a Habbo Origins user.
+
+    Attributes:
+        bot (commands.Bot): The instance of the bot.
+        config (Config): The configuration object.
+        habbo_controller (HabboController): The controller for handling Habbo-related operations.
+    """
+
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        self.config = Config()
+        self.habbo_controller = HabboController()
+
+    # Rest of the code...
+class KekoCmd(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.config = Config()

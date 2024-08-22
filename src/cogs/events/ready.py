@@ -7,12 +7,19 @@ from pystyle import Colors, Colorate, Center
 from src.views.battleball.panel import BattleballPanelView
 
 class OnReady(commands.Cog):
+    """
+    A class representing the on_ready event handler for the bot.
+    """
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config()
 
     @commands.Cog.listener()
     async def on_ready(self):
+        """
+        A coroutine that is called when the bot is ready to start receiving events.
+        """
 
         os.system("cls||clear")
 

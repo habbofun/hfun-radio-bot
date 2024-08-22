@@ -9,11 +9,21 @@ from src.controller.discord.embed_controller import EmbedController
 
 @Singleton
 class RadioController:
+    """
+    Controller class for managing radio-related functionality.
+    """
+
     ERROR_MESSAGE = "None or Error"
     AUTODJ_OR_ERROR = "AutoDJ or Error"
     UNEXPECTED_RESPONSE_FORMAT = "Unexpected response format"
 
     def __init__(self, bot: commands.Bot):
+        """
+        Initializes the RadioController instance.
+
+        Args:
+            bot (commands.Bot): The Discord bot instance.
+        """
         if hasattr(self, '_initialized') and self._initialized:
             return
         
@@ -28,6 +38,15 @@ class RadioController:
         self._initialized = True
 
     async def get_now_playing(self, station_id: str) ->  Tuple[str, str]:
+        """
+        Retrieves the currently playing song and the current streamer for a given station.
+
+        Args:
+            station_id (str): The ID of the radio station.
+
+        Returns:
+            Tuple[str, str]: A tuple containing the currently playing song and the current streamer.
+        """
         url = f"{self.config.azuracast_api_url}/nowplaying/{station_id}"
         try:
             response = await self.client.get(url, headers=self.headers)
@@ -46,6 +65,15 @@ class RadioController:
             return self.ERROR_MESSAGE, self.AUTODJ_OR_ERROR
 
     async def get_listeners(self, station_id: str) -> int:
+        """
+        Retrieves the number of listeners for a given station.
+
+        Args:
+            station_id (str): The ID of the radio station.
+
+        Returns:
+            int: The number of listeners.
+        """
         url = f"{self.config.azuracast_api_url}/station/{station_id}/listeners"
         try:
             response = await self.client.get(url, headers=self.headers)
@@ -62,6 +90,15 @@ class RadioController:
             return 0
 
     async def get_song_history(self, station_id: str) -> str:
+        """
+        Retrieves the song history for a given station.
+
+        Args:
+            station_id (str): The ID of the radio station.
+
+        Returns:
+            str: The song history.
+        """
         url = f"{self.config.azuracast_api_url}/station/{station_id}/history"
         try:
             response = await self.client.get(url, headers=self.headers)
@@ -79,6 +116,15 @@ class RadioController:
             return self.ERROR_MESSAGE
 
     async def get_song_queue(self, station_id: str) -> Optional[list[str]]:
+        """
+        Retrieves the song queue for a given station.
+
+        Args:
+            station_id (str): The ID of the radio station.
+
+        Returns:
+            Optional[list[str]]: The song queue, or None if there is no song queue.
+        """
         url = f"{self.config.azuracast_api_url}/station/{station_id}/queue"
         try:
             response = await self.client.get(url, headers=self.headers)
@@ -96,6 +142,16 @@ class RadioController:
             return None
 
     async def update_panel_config_values(self, panel_channel_id: int, panel_message_id: int) -> bool:
+        """
+        Updates the panel configuration values.
+
+        Args:
+            panel_channel_id (int): The ID of the panel channel.
+            panel_message_id (int): The ID of the panel message.
+
+        Returns:
+            bool: True if the update was successful, False otherwise.
+        """
         try:
             self.config.change_value("panel_channel_id", panel_channel_id)
             self.config.change_value("panel_message_id", panel_message_id)
@@ -105,6 +161,9 @@ class RadioController:
             return False
 
     async def create_or_update_embed(self) -> None:
+        """
+        Creates or updates the embed message with the radio station information.
+        """
         now_playing, current_streamer = await self.get_now_playing(self.config.azuracast_station_name)
         current_listeners = await self.get_listeners(self.config.azuracast_station_name)
         song_history = await self.get_song_history(self.config.azuracast_station_name)

@@ -7,6 +7,10 @@ from src.controller.discord.schema.embed_schema import EmbedSchema
 from src.controller.discord.embed_controller import EmbedController
 
 class LogChannelCommand(commands.Cog):
+    """
+    A command cog for setting the bot log channel.
+    """
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.config = Config()
@@ -17,6 +21,17 @@ class LogChannelCommand(commands.Cog):
         await self.bot.command_queue.put((interaction, self.process_log_channel(interaction, log_channel, hidden)))
 
     async def process_log_channel(self, interaction: discord.Interaction, log_channel: discord.TextChannel, hidden: bool):
+        """
+        Process the log channel command.
+
+        Args:
+            interaction (discord.Interaction): The interaction object.
+            log_channel (discord.TextChannel): The log channel to set.
+            hidden (bool): Whether the response should be ephemeral.
+
+        Returns:
+            None
+        """
         try:
             if log_channel is None:
                 log_channel = interaction.channel
