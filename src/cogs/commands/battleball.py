@@ -24,18 +24,15 @@ class BattleLeaderboard(commands.Cog):
     async def process_battle_leaderboard_task(self, interaction: discord.Interaction, battleball_channel_id: discord.TextChannel):
         try:
             # Send an initial loading message in the specified channel
-            battleball_message = await battleball_channel_id.send("Loading BattleBall leaderboard...")
+            battleball_message = await battleball_channel_id.send("Loading BattleBall leaderboard...", view=BattleballPanelView())
 
             # Update the battleball config with the new channel and message IDs
             if not await self.battleball_score_manager.update_battleball_config_values(battleball_channel_id.id, battleball_message.id):
-                await interaction.followup.send("Failed to update battleball config values.", ephemeral=True)
+                await battleball_channel_id.send("Failed to update battleball config values.", ephemeral=True)
                 return
 
             # Create or update the leaderboard embed
             await self.battleball_score_manager.create_or_update_embed()
-
-            # Send a confirmation message
-            await interaction.followup.send("BattleBall leaderboard updated.", ephemeral=True, view=BattleballPanelView())
         except Exception as e:
             logger.error(f"An error occurred while trying to get the leaderboard: {e}")
             await interaction.followup.send("An error occurred while trying to get the leaderboard.", ephemeral=True)
