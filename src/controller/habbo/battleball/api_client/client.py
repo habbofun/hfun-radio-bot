@@ -79,7 +79,7 @@ class HabboApiClient:
                         break  # Exit retry loop on success
                 except (httpx.RequestError, httpx.HTTPStatusError) as e:
                     if attempt < self.MAX_ATTEMPTS - 1:
-                        logger.warning(f"Failed to fetch match data for match ID {match_id} ({attempt + 1}/{self.MAX_ATTEMPTS})")
+                        logger.warning(f"Failed to fetch match data for match ID '{match_id}' ({attempt + 1}/{self.MAX_ATTEMPTS})")
                         continue  # Retry the request
                     else:
                         raise  # Re-raise the exception after max attempts

@@ -44,7 +44,7 @@ class BattleballWorker:
             if match_id not in checked_match_ids:
                 temp_match_ids.append(match_id)
 
-        logger.info(f"Processing {len(temp_match_ids)} matches for {queue_item['username']}")
+        logger.info(f"Processing '{len(temp_match_ids)}' matches for '{queue_item['username']}'")
 
         for i in range(0, len(temp_match_ids), 2):
             batch = temp_match_ids[i:i+2]
@@ -53,7 +53,7 @@ class BattleballWorker:
             for match_data in matches:
                 match_id = match_data.metadata.matchId
 
-                logger.info(f"Processing match {match_id} for user {queue_item['username']}")
+                logger.info(f"Processing match '{match_id}' for user '{queue_item['username']}'")
                 participant = next((p for p in match_data.info.participants if p.gamePlayerId == bouncer_player_id), None)
 
                 if participant:
@@ -76,7 +76,7 @@ class BattleballWorker:
             user_that_queued = self.bot.get_user(queue_item["discord_id"])
             await user_that_queued.send(f"Job for user `{queue_item['username']}` has been completed.")
         except discord.HTTPException as e:
-            logger.error(f"Failed to send DM to user {queue_item['username']}: {e}")
+            logger.error(f"Failed to send DM to user '{queue_item['username']}': {e}")
 
         logger.info(f"Processed {len(temp_match_ids)} matches for {queue_item['username']} in {time.time() - start_time:.2f} seconds")
 
@@ -116,18 +116,17 @@ class BattleballWorker:
 
     async def get_leaderboard(self, mobile_version: bool = False) -> str:
         leaderboard = await self.db_service.get_leaderboard()
+
         if mobile_version:
             formatted_leaderboard = [
-                (
-                    f"Position: {idx + 1}\n"
-                    f"Username: {username}\n"
-                    f"Score: {score}\n"
-                    f"Ranked: {ranked_matches}\n"
-                    f"Non-Ranked: {non_ranked_matches}\n"
-                )
-                for idx, (username, score, ranked_matches, non_ranked_matches) in enumerate(leaderboard)
+                (idx + 1, username, score)
+                for idx, (username, score, _, _) in enumerate(leaderboard)
             ]
-            return "\n".join(formatted_leaderboard)
+            return tabulate(
+                formatted_leaderboard,
+                headers=["Position", "Username", "Score"],
+                tablefmt="pretty"
+            )
 
         formatted_leaderboard = [
             (idx + 1, username, score, ranked_matches, non_ranked_matches)
