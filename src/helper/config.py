@@ -2,15 +2,11 @@ import discord
 import yaml
 from loguru import logger
 from yaml import SafeLoader
+from src.helper.singleton import Singleton
 
+@Singleton
 class Config:
-    _instance = None
     CONFIG_FILE_PATH = "config.yaml"
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(Config, cls).__new__(cls)
-        return cls._instance
 
     def __init__(self):
         if hasattr(self, '_initialized') and self._initialized:

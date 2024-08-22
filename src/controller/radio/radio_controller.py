@@ -3,20 +3,15 @@ from typing import Tuple, Optional
 from loguru import logger
 from discord.ext import commands
 from src.helper.config import Config
+from src.helper.singleton import Singleton
 from src.controller.discord.schema.embed_schema import EmbedSchema
 from src.controller.discord.embed_controller import EmbedController
 
+@Singleton
 class RadioController:
-    _instance = None
     ERROR_MESSAGE = "None or Error"
     AUTODJ_OR_ERROR = "AutoDJ or Error"
     UNEXPECTED_RESPONSE_FORMAT = "Unexpected response format"
-
-    @classmethod
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(RadioController, cls).__new__(cls)
-        return cls._instance
 
     def __init__(self, bot: commands.Bot):
         if hasattr(self, '_initialized') and self._initialized:

@@ -1,6 +1,7 @@
 import os
 from loguru import logger
 from src.helper.config import Config
+from src.helper.singleton import Singleton
 
 defaultConfig = """
 # [APP]
@@ -25,6 +26,7 @@ azuracast_api_url:
 azuracast_api_key: 
 """
 
+@Singleton
 class FileManager:
 
     def __init__(self):

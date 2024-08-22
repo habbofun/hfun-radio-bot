@@ -2,8 +2,10 @@ from discord import Embed
 from loguru import logger
 from datetime import datetime
 from src.helper.config import Config
+from src.helper.singleton import Singleton
 from src.controller.discord.schema.embed_schema import EmbedSchema
 
+@Singleton
 class EmbedController:
     """
     A class that handles the creation of Discord embeds.

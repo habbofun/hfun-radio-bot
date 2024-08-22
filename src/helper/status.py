@@ -1,8 +1,10 @@
 from itertools import cycle
 from discord.ext import commands
 from src.helper.config import Config
+from src.helper.singleton import Singleton
 from src.controller.radio.radio_controller import RadioController
 
+@Singleton
 class BotStatus:
     """
     Represents the status of the Discord bot.

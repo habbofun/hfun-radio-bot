@@ -1,17 +1,11 @@
 import os, httpx
 from io import BytesIO
 from loguru import logger
+from src.helper.singleton import Singleton
 from PIL import Image, ImageDraw, ImageFont
 
+@Singleton
 class HabboController:
-    _instance = None
-
-    @classmethod
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(HabboController, cls).__new__(cls)
-        return cls._instance
-
     def __init__(self):
         if hasattr(self, '_initialized') and self._initialized:
             return
