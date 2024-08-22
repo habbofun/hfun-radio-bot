@@ -3,7 +3,7 @@ from loguru import logger
 from discord.ext import commands
 from discord import app_commands
 from src.views.battleball.panel import BattleballPanelView
-from src.controller.habbo.battleball.score_manager import ScoreManager
+from src.controller.habbo.battleball.worker.worker import BattleballWorker
 
 class BattleLeaderboard(commands.Cog):
     """
@@ -14,7 +14,7 @@ class BattleLeaderboard(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.battleball_score_manager = ScoreManager(bot)
+        self.battleball_worker = BattleballWorker(bot)
 
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.command(name="battleball", description="Command to send the battleball leaderboard.")
@@ -27,13 +27,13 @@ class BattleLeaderboard(commands.Cog):
 
     async def process_battle_leaderboard_task(self, interaction: discord.Interaction, battleball_channel_id: discord.TextChannel):
         try:
-            battleball_message = await battleball_channel_id.send("Loading BattleBall leaderboard...", view=BattleballPanelView())
+            battleball_message = await battleball_channel_id.send("Loading BattleBall leaderboard...", view=BattleballPanelView(self.bot))
 
-            if not await self.battleball_score_manager.update_battleball_config_values(battleball_message.channel.id, battleball_message.id):
+            if not await self.battleball_worker.update_battleball_config_values(battleball_message.channel.id, battleball_message.id):
                 await battleball_channel_id.send("Failed to update battleball config values.", ephemeral=True)
                 return
 
-            await self.battleball_score_manager.create_or_update_embed()
+            await self.battleball_worker.create_or_update_embed()
         except Exception as e:
             logger.error(f"An error occurred while trying to get the leaderboard: {e}")
             await interaction.followup.send("An error occurred while trying to get the leaderboard.", ephemeral=True)

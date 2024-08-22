@@ -1,7 +1,7 @@
 from loguru import logger
 from src.helper.config import Config
 from discord.ext import commands, tasks
-from src.controller.habbo.battleball.score_manager import ScoreManager
+from src.controller.habbo.battleball.worker.worker import BattleballWorker
 
 class UpdateBattleballPanelLoop(commands.Cog):
     """
@@ -24,7 +24,7 @@ class UpdateBattleballPanelLoop(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.config = Config()
-        self.battleball_score_manager = ScoreManager(bot)
+        self.battleball_worker = BattleballWorker(bot)
         self.update_battleball_panel.start()
 
     @tasks.loop(seconds=30)
@@ -39,7 +39,7 @@ class UpdateBattleballPanelLoop(commands.Cog):
             None
 
         """
-        await self.battleball_score_manager.create_or_update_embed()
+        await self.battleball_worker.create_or_update_embed()
 
     @update_battleball_panel.before_loop
     async def before_update_battleball_panel(self) -> None:

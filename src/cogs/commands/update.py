@@ -1,41 +1,42 @@
 import discord
-from loguru import logger
 from discord.ext import commands
 from discord import app_commands
-from src.controller.habbo.battleball.score_manager import ScoreManager
+from src.database.service.battleball_service import BattleballDatabaseService
+from src.controller.habbo.battleball.worker.worker import BattleballWorker
 
 class BattleUpdate(commands.Cog):
-    """
-    A class representing a Discord cog for updating battleball profiles.
-    """
-
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.battleball_score_manager = ScoreManager(bot)
+        self.db_service = BattleballDatabaseService()
+        self.worker = BattleballWorker(bot)
 
-    @app_commands.command(name="update", description="Command to try to update a battleball profile data.")
+    @app_commands.command(name="update", description="Command to update a battleball profile's data.")
     async def battle_update_command(self, interaction: discord.Interaction, username: str):
-        await interaction.response.send_message(f"Starting update for {username}.\nYou will receive a DM when the process is complete.", ephemeral=True)
-        self.bot.loop.create_task(self.process_battle_update_task(interaction, username))
+        await self.db_service.initialize()
 
-    async def process_battle_update_task(self, interaction: discord.Interaction, username: str):
-        try:
-            await self.battleball_score_manager.process_user_scores(username)
-
-            user = await self.bot.fetch_user(interaction.user.id)
-            await user.send(f"Update complete for {username}.")
-        except Exception as e:
-            logger.critical(f"Failed to update battle profile for {username}: {e}")
-            user = await self.bot.fetch_user(interaction.user.id)
-            await user.send(f"There was an error trying to update the profile for {username}. Please try again later.")
-
-    @battle_update_command.error
-    async def battle_update_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
-        if isinstance(error, app_commands.errors.MissingPermissions):
-            await interaction.response.send_message("You don't have the necessary permissions to use this command.", ephemeral=True)
+        added_by = interaction.user.id
+        position = await self.db_service.add_to_queue(username, added_by)
+        
+        if position == 1:
+            await interaction.response.send_message(
+                f"{username} is now being processed. You'll receive a notification once it's done.",
+                ephemeral=True
+            )
+            if not self.worker.running:
+                await self.worker.start()
         else:
-            await interaction.response.send_message(f"An error occurred: {error}", ephemeral=True)
+            await interaction.response.send_message(
+                f"{username} was added to the queue at position {position}.",
+                ephemeral=True
+            )
+
+    @app_commands.command(name="leaderboard", description="Display the BattleBall leaderboard.")
+    async def leaderboard_command(self, interaction: discord.Interaction, mobile_version: bool = False):
+        leaderboard = await self.worker.get_leaderboard(mobile_version)
+        await interaction.response.send_message(leaderboard, ephemeral=True)
+
+    async def cog_unload(self):
+        await self.worker.stop()
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(BattleUpdate(bot))
-    logger.info("Battle-Update command loaded!")

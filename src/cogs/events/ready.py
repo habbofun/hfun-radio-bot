@@ -29,7 +29,7 @@ class OnReady(commands.Cog):
         print(f"{centered_logo}\n{divider}\n\n")
 
         logger.debug("Setting persistent views...")
-        self.bot.add_view(BattleballPanelView())
+        self.bot.add_view(BattleballPanelView(self.bot))
 
         logger.info(f"Logged in as {self.bot.user.name}#{self.bot.user.discriminator}.")
 

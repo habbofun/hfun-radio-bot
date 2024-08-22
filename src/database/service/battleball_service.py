@@ -1,230 +1,119 @@
-import time, aiosqlite
+import aiosqlite
+from typing import Optional
+from src.database.models.battleball import User, Match
 from src.helper.singleton import Singleton
 
 @Singleton
 class BattleballDatabaseService:
-    """
-    A class that provides database operations for the Battleball game.
-
-    Attributes:
-        db_path (str): The path to the SQLite database file.
-
-    Methods:
-        initialize: Initializes the database by creating necessary tables if they don't exist.
-        get_user: Retrieves a user from the database based on the username.
-        insert_user: Inserts a new user into the database.
-        update_user_matches: Updates the number of ranked and non-ranked matches for a user.
-        mark_match_as_processed_for_user: Marks a match as processed for a specific user.
-        is_match_processed_for_user: Checks if a match has been processed for a specific user.
-        update_score: Updates the total score for a user.
-        get_user_score: Retrieves the total score of a user.
-        get_user_cache: Retrieves cached data for a user.
-        get_leaderboard: Retrieves the leaderboard of users based on their total scores.
-
-    """
-
-    def __init__(self, db_path='src/database/storage/battleball.db'):
-        """
-        Initializes a new instance of the BattleballDatabaseService class.
-
-        Args:
-            db_path (str): The path to the SQLite database file. Defaults to 'src/database/storage/battleball.db'.
-        """
+    def __init__(self, db_path: str = 'src/database/storage/battleball.db'):
         self.db_path = db_path
 
     async def initialize(self):
-        """
-        Initializes the database by creating necessary tables if they don't exist.
-        """
         async with aiosqlite.connect(self.db_path) as db:
-            await db.executescript('''
+            await db.execute("""
                 CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY,
+                    discord_id INTEGER UNIQUE,
+                    username TEXT,
+                    total_score INTEGER DEFAULT 0,
+                    ranked_matches INTEGER DEFAULT 0,
+                    non_ranked_matches INTEGER DEFAULT 0
+                )
+            """)
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS queue (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT UNIQUE NOT NULL,
-                    bouncer_player_id TEXT UNIQUE NOT NULL,
-                    last_updated INTEGER NOT NULL,
-                    ranked_matches INTEGER NOT NULL DEFAULT 0,
-                    non_ranked_matches INTEGER NOT NULL DEFAULT 0
-                );
+                    username TEXT,
+                    discord_id INTEGER,
+                    position INTEGER
+                )
+            """)
+            await db.execute("""
                 CREATE TABLE IF NOT EXISTS matches (
-                    match_id TEXT PRIMARY KEY
-                );
-                CREATE TABLE IF NOT EXISTS scores (
-                    user_id INTEGER NOT NULL,
-                    total_score INTEGER NOT NULL DEFAULT 0,
-                    UNIQUE(user_id),
-                    FOREIGN KEY (user_id) REFERENCES users(id)
-                );
-                CREATE TABLE IF NOT EXISTS user_match (
-                    user_id INTEGER NOT NULL,
-                    match_id TEXT NOT NULL,
-                    processed BOOLEAN NOT NULL DEFAULT 0,
-                    UNIQUE(user_id, match_id),
-                    FOREIGN KEY (user_id) REFERENCES users(id),
-                    FOREIGN KEY (match_id) REFERENCES matches(match_id)
-                );
-            ''')
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    match_id TEXT,
+                    user_id INTEGER,
+                    game_score INTEGER,
+                    ranked BOOLEAN,
+                    FOREIGN KEY(user_id) REFERENCES users(id)
+                )
+            """)
             await db.commit()
 
-    async def get_user(self, username):
-        """
-        Retrieves a user from the database based on the username.
-
-        Args:
-            username (str): The username of the user to retrieve.
-
-        Returns:
-            dict: A dictionary representing the user's data, or None if the user doesn't exist.
-        """
+    async def add_user(self, username: str, discord_id: int):
         async with aiosqlite.connect(self.db_path) as db:
-            cursor = await db.execute('SELECT * FROM users WHERE username = ?', (username,))
-            return await cursor.fetchone()
-
-    async def insert_user(self, username, bouncer_player_id):
-        """
-        Inserts a new user into the database.
-
-        Args:
-            username (str): The username of the user to insert.
-            bouncer_player_id (str): The bouncer player ID of the user to insert.
-        """
-        async with aiosqlite.connect(self.db_path) as db:
-            await db.execute('''
-                INSERT INTO users (username, bouncer_player_id, last_updated, ranked_matches, non_ranked_matches)
-                VALUES (?, ?, ?, 0, 0)
-            ''', (username, bouncer_player_id, int(time.time())))
+            await db.execute("""
+                INSERT OR IGNORE INTO users (discord_id, username)
+                VALUES (?, ?)
+            """, (discord_id, username))
             await db.commit()
 
-    async def update_user_matches(self, username, ranked_increment, non_ranked_increment):
-        """
-        Updates the number of ranked and non-ranked matches for a user.
-
-        Args:
-            username (str): The username of the user to update.
-            ranked_increment (int): The amount to increment the ranked matches by.
-            non_ranked_increment (int): The amount to increment the non-ranked matches by.
-        """
+    async def get_user_id(self, discord_id: int) -> Optional[int]:
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute('''
-                UPDATE users 
-                SET ranked_matches = ranked_matches + ?, 
-                    non_ranked_matches = non_ranked_matches + ?, 
-                    last_updated = ? 
-                WHERE username = ?
-            ''', (ranked_increment, non_ranked_increment, int(time.time()), username))
+            async with db.execute("SELECT id FROM users WHERE discord_id = ?", (discord_id,)) as cursor:
+                row = await cursor.fetchone()
+                return row[0] if row else None
+
+    async def update_user_score_and_matches(self, user_id: int, score: int, is_ranked: bool):
+        async with aiosqlite.connect(self.db_path) as db:
+            if is_ranked:
+                await db.execute("""
+                    UPDATE users
+                    SET total_score = total_score + ?, ranked_matches = ranked_matches + 1
+                    WHERE id = ?
+                """, (score, user_id))
+            else:
+                await db.execute("""
+                    UPDATE users
+                    SET total_score = total_score + ?, non_ranked_matches = non_ranked_matches + 1
+                    WHERE id = ?
+                """, (score, user_id))
             await db.commit()
 
-    async def mark_match_as_processed_for_user(self, user_id, match_id):
-        """
-        Marks a match as processed for a specific user.
-
-        Args:
-            user_id (int): The ID of the user.
-            match_id (str): The ID of the match to mark as processed.
-        """
+    async def add_match(self, match: Match):
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute('''
-                INSERT INTO user_match (user_id, match_id, processed)
-                VALUES (?, ?, 1)
-                ON CONFLICT(user_id, match_id) DO UPDATE SET processed=1
-            ''', (user_id, match_id))
+            await db.execute("""
+                INSERT INTO matches (match_id, user_id, game_score, ranked)
+                VALUES (?, ?, ?, ?)
+            """, (match.match_id, match.user_id, match.game_score, match.ranked))
             await db.commit()
 
-    async def is_match_processed_for_user(self, user_id, match_id):
-        """
-        Checks if a match has been processed for a specific user.
-
-        Args:
-            user_id (int): The ID of the user.
-            match_id (str): The ID of the match to check.
-
-        Returns:
-            bool: True if the match has been processed for the user, False otherwise.
-        """
+    async def get_checked_matches(self, user_id: int):
         async with aiosqlite.connect(self.db_path) as db:
-            cursor = await db.execute('''
-                SELECT processed FROM user_match 
-                WHERE user_id = ? AND match_id = ?
-            ''', (user_id, match_id))
-            result = await cursor.fetchone()
-            return result is not None and result[0] == 1
+            async with db.execute("SELECT match_id FROM matches WHERE user_id = ? AND ranked = 1", (user_id,)) as cursor:
+                return [row[0] for row in await cursor.fetchall()]
 
-    async def update_score(self, username, score):
-        """
-        Updates the total score for a user.
-
-        Args:
-            username (str): The username of the user to update.
-            score (int): The score to add to the user's total score.
-        """
+    async def add_to_queue(self, username: str, discord_id: int) -> int:
         async with aiosqlite.connect(self.db_path) as db:
-            user = await self.get_user(username)
-            if user:
-                user_id = user[0]
-                await db.execute('''
-                    INSERT INTO scores (user_id, total_score) 
-                    VALUES (?, ?) 
-                    ON CONFLICT(user_id) DO UPDATE SET total_score=total_score + ?
-                ''', (user_id, score, score))
-                await db.commit()
+            cursor = await db.execute("SELECT MAX(position) FROM queue")
+            max_position = await cursor.fetchone()
+            position = (max_position[0] or 0) + 1
 
-    async def get_user_score(self, username):
-        """
-        Retrieves the total score of a user.
+            await db.execute("""
+                INSERT INTO queue (username, discord_id, position)
+                VALUES (?, ?, ?)
+            """, (username, discord_id, position))
+            await db.commit()
+            return position
 
-        Args:
-            username (str): The username of the user to retrieve the score for.
-
-        Returns:
-            int: The total score of the user, or 0 if the user doesn't exist.
-        """
+    async def get_next_in_queue(self) -> Optional[dict]:
         async with aiosqlite.connect(self.db_path) as db:
-            cursor = await db.execute('''
-                SELECT s.total_score 
-                FROM scores s
-                JOIN users u ON s.user_id = u.id
-                WHERE u.username = ?
-            ''', (username,))
-            result = await cursor.fetchone()
-            return result[0] if result else 0
+            async with db.execute("SELECT * FROM queue ORDER BY position LIMIT 1") as cursor:
+                row = await cursor.fetchone()
+                if row:
+                    return {"id": row[0], "username": row[1], "discord_id": row[2], "position": row[3]}
+                return None
 
-    async def get_user_cache(self, username):
-        """
-        Retrieves cached data for a user.
-
-        Args:
-            username (str): The username of the user.
-
-        Returns:
-            dict: A dictionary containing the user's cached score and last update time.
-        """
+    async def remove_from_queue(self, queue_id: int):
         async with aiosqlite.connect(self.db_path) as db:
-            cursor = await db.execute('''
-                SELECT total_score, last_updated 
-                FROM scores
-                JOIN users ON scores.user_id = users.id
-                WHERE users.username = ?
-            ''', (username,))
-            result = await cursor.fetchone()
-            return {"total_score": result[0], "last_updated": result[1]} if result else None
+            await db.execute("DELETE FROM queue WHERE id = ?", (queue_id,))
+            await db.commit()
 
-    async def get_leaderboard(self, limit=10):
-        """
-        Retrieves the leaderboard of users based on their total scores.
-
-        Args:
-            limit (int): The maximum number of users to retrieve. Defaults to 10.
-
-        Returns:
-            list: A list of tuples representing the leaderboard entries. Each tuple contains the username, total score,
-                number of ranked matches, and number of non-ranked matches.
-        """
+    async def get_leaderboard(self):
         async with aiosqlite.connect(self.db_path) as db:
-            cursor = await db.execute('''
-                SELECT u.username, s.total_score, u.ranked_matches, u.non_ranked_matches 
-                FROM scores s
-                JOIN users u ON s.user_id = u.id
-                ORDER BY s.total_score DESC
-                LIMIT ?
-            ''', (limit,))
-            return await cursor.fetchall()
+            async with db.execute("""
+                SELECT username, total_score, ranked_matches, non_ranked_matches
+                FROM users
+                ORDER BY total_score DESC
+            """) as cursor:
+                return await cursor.fetchall()
