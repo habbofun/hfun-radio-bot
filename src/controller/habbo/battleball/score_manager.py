@@ -1,4 +1,5 @@
-import time, aiosqlite
+import time
+import aiosqlite
 from loguru import logger
 from tabulate import tabulate
 from src.helper.singleton import Singleton
@@ -83,4 +84,8 @@ class ScoreManager:
 
     async def get_leaderboard(self):
         leaderboard = await self.db_service.get_leaderboard()
-        return tabulate(leaderboard, headers=["Position", "Username", "Score"])
+        formatted_leaderboard = [
+            (idx + 1, username, score, ranked_matches, non_ranked_matches)
+            for idx, (username, score, ranked_matches, non_ranked_matches) in enumerate(leaderboard)
+        ]
+        return tabulate(formatted_leaderboard, headers=["Position", "Username", "Score", "Ranked Matches", "Non-Ranked Matches"], tablefmt="pretty")

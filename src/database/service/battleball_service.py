@@ -1,4 +1,5 @@
-import time, aiosqlite
+import time
+import aiosqlite
 from src.helper.singleton import Singleton
 
 @Singleton
@@ -94,7 +95,7 @@ class BattleballDatabaseService:
     async def get_leaderboard(self, limit=10):
         async with aiosqlite.connect(self.db_path) as db:
             cursor = await db.execute('''
-                SELECT u.username, s.total_score 
+                SELECT u.username, s.total_score, u.ranked_matches, u.non_ranked_matches 
                 FROM scores s
                 JOIN users u ON s.user_id = u.id
                 ORDER BY s.total_score DESC
