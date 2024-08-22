@@ -20,7 +20,7 @@ class ScoreManager:
         start_time = time.time()  # Start timing the process
 
         if username in self.cache and (time.time() - self.cache[username]['last_updated']) < 3600:
-            logger.info(f"Returning cached score for {username}.")
+            #logger.info(f"Returning cached score for {username}.")
             return self.cache[username]['total_score']
 
         user = await self.db_service.get_user(username)
@@ -45,7 +45,7 @@ class ScoreManager:
 
         end_time = time.time()  # End timing the process
         elapsed_time = end_time - start_time
-        logger.info(f"Time taken to gather and process all info for {username}: {elapsed_time:.2f} seconds")
+        #logger.info(f"Time taken to gather and process all info for {username}: {elapsed_time:.2f} seconds")
 
         return total_score
 

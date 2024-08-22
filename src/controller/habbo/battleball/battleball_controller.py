@@ -28,7 +28,8 @@ class BattleballController:
                     response.raise_for_status()
                     return response.json()
             except (httpx.RequestError, httpx.HTTPStatusError) as e:
-                logger.warning(f"Request failed (attempt {attempt + 1}/{max_retries})")
+                #logger.warning(f"Request failed (attempt {attempt + 1}/{max_retries})")
+                pass
         raise Exception(f"Failed to complete request after {max_retries} attempts.")
 
     async def get_bouncer_player_id(self, username):
@@ -61,7 +62,7 @@ class BattleballController:
             if len(new_match_ids) < limit:
                 break
 
-        logger.info(f"Total {len(match_ids)} match IDs retrieved for player {bouncer_player_id}")
+        #logger.info(f"Total {len(match_ids)} match IDs retrieved for player {bouncer_player_id}")
         return match_ids
 
     async def get_match_data(self, match_id):
@@ -88,6 +89,7 @@ class BattleballController:
                     result = await future
                     results.append(result)
                 except Exception as e:
-                    logger.error(f"Error fetching match data: {e}")
+                    #logger.error(f"Error fetching match data: {e}")
+                    pass
 
         return results
