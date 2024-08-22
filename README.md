@@ -34,7 +34,7 @@ and
 ```
 .sync YOUR_GUILD_ID
 ```
-6. Enjoy!
+6. Restart Discord for the new commands to appear & enjoy!
 
 ## Configuration
 Don't use quotes or double quotes in the values of the configuration file.
