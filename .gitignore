@@ -157,3 +157,4 @@ config.yaml
 *.log
 /src/assets/proxies.txt
 /src/controller/habbo/temp
+src/database/storage/*.db
