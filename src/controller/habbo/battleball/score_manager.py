@@ -180,14 +180,18 @@ class ScoreManager:
         Create or update the leaderboard embed.
         """
         leaderboard_string = await self.get_leaderboard()
+        
+        # Split the leaderboard string into chunks of up to 1024 characters
+        chunk_size = 1024 - len("```...```")  # Account for code block formatting
+        leaderboard_chunks = [leaderboard_string[i:i+chunk_size] for i in range(0, len(leaderboard_string), chunk_size)]
 
-        fields = [
-            {
-                "name": "📃 Ranking",
-                "value": f"```{leaderboard_string}```",
-                "inline": True
-            }
-        ]
+        fields = []
+        for i, chunk in enumerate(leaderboard_chunks):
+            fields.append({
+                "name": f"📃 Ranking (Part {i+1})",
+                "value": f"```{chunk}```",
+                "inline": False
+            })
 
         embed_schema = EmbedSchema(
             title="BattleBall Leaderboard",

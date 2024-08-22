@@ -4,15 +4,7 @@ from loguru import logger
 from yaml import SafeLoader
 from src.helper.singleton import Singleton
 
-import yaml
-from yaml.loader import SafeLoader
-import discord
-from singleton_decorator import singleton
-import logging
-
-logger = logging.getLogger(__name__)
-
-@singleton
+@Singleton
 class Config:
     """
     A class that represents the configuration settings for the bot.
