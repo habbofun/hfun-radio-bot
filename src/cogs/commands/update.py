@@ -15,7 +15,7 @@ class BattleUpdate(commands.Cog):
 
     @app_commands.command(name="update", description="Command to try to update a battleball profile data.")
     async def battle_update_command(self, interaction: discord.Interaction, username: str):
-        await interaction.response.send_message(f"Starting update for {username}. You will receive a DM when the process is complete.", ephemeral=True)
+        await interaction.response.send_message(f"Starting update for {username}.\nYou will receive a DM when the process is complete.", ephemeral=True)
         self.bot.loop.create_task(self.process_battle_update_task(interaction, username))
 
     async def process_battle_update_task(self, interaction: discord.Interaction, username: str):
