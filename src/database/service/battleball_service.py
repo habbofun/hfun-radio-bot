@@ -14,7 +14,7 @@ class BattleballDatabaseService:
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY,
                     discord_id INTEGER UNIQUE,
-                    username TEXT,
+                    username TEXT UNIQUE,
                     total_score INTEGER DEFAULT 0,
                     ranked_matches INTEGER DEFAULT 0,
                     non_ranked_matches INTEGER DEFAULT 0
@@ -25,7 +25,8 @@ class BattleballDatabaseService:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     username TEXT,
                     discord_id INTEGER,
-                    position INTEGER
+                    position INTEGER,
+                    UNIQUE(username)
                 )
             """)
             await db.execute("""
@@ -35,12 +36,14 @@ class BattleballDatabaseService:
                     user_id INTEGER,
                     game_score INTEGER,
                     ranked BOOLEAN,
-                    FOREIGN KEY(user_id) REFERENCES users(id)
+                    FOREIGN KEY(user_id) REFERENCES users(id),
+                    UNIQUE(match_id, user_id)
                 )
             """)
             await db.commit()
 
     async def add_user(self, username: str, discord_id: int):
+        username = username.lower()  # Convert username to lowercase
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("""
                 INSERT OR IGNORE INTO users (discord_id, username)
@@ -73,7 +76,7 @@ class BattleballDatabaseService:
     async def add_match(self, match: Match):
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("""
-                INSERT INTO matches (match_id, user_id, game_score, ranked)
+                INSERT OR IGNORE INTO matches (match_id, user_id, game_score, ranked)
                 VALUES (?, ?, ?, ?)
             """, (match.match_id, match.user_id, match.game_score, match.ranked))
             await db.commit()
@@ -83,8 +86,14 @@ class BattleballDatabaseService:
             async with db.execute("SELECT match_id FROM matches WHERE user_id = ? AND ranked = 1", (user_id,)) as cursor:
                 return [row[0] for row in await cursor.fetchall()]
 
-    async def add_to_queue(self, username: str, discord_id: int) -> int:
+    async def add_to_queue(self, username: str, discord_id: int) -> Optional[int]:
+        username = username.lower()  # Convert username to lowercase
         async with aiosqlite.connect(self.db_path) as db:
+            # Check if the username is already in the queue
+            async with db.execute("SELECT id FROM queue WHERE username = ?", (username,)) as cursor:
+                if await cursor.fetchone():
+                    return None  # Username already in queue, do not add again
+
             cursor = await db.execute("SELECT MAX(position) FROM queue")
             max_position = await cursor.fetchone()
             position = (max_position[0] or 0) + 1
