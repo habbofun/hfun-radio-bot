@@ -1,14 +1,19 @@
-import time
-import aiosqlite
+import time, discord, aiosqlite
 from loguru import logger
 from tabulate import tabulate
+from discord.ext import commands
+from src.helper.config import Config
 from src.helper.singleton import Singleton
+from src.controller.discord.schema.embed_schema import EmbedSchema
+from src.controller.discord.embed_controller import EmbedController
 from src.database.service.battleball_service import BattleballDatabaseService
 from src.controller.habbo.battleball.battleball_controller import BattleballController
 
 @Singleton
 class ScoreManager:
-    def __init__(self):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        self.config = Config()
         self.api_controller = BattleballController()
         self.db_service = BattleballDatabaseService()
         self.cache = {}  # In-memory cache for quick access
@@ -82,10 +87,52 @@ class ScoreManager:
             result = await cursor.fetchone()
             return result[0] if result else None
 
-    async def get_leaderboard(self):
+    async def get_leaderboard(self, mobile_version: bool = False):
         leaderboard = await self.db_service.get_leaderboard()
         formatted_leaderboard = [
             (idx + 1, username, score, ranked_matches, non_ranked_matches)
             for idx, (username, score, ranked_matches, non_ranked_matches) in enumerate(leaderboard)
         ]
         return tabulate(formatted_leaderboard, headers=["Position", "Username", "Score", "Ranked Matches", "Non-Ranked Matches"], tablefmt="pretty")
+
+    async def update_battleball_config_values(self, channel_id: int, message_id: int) -> bool:
+        if not self.config.change_value("battleball_channel_id", channel_id):
+            return False
+
+        if not self.config.change_value("battleball_message_id", message_id):
+            return False
+
+    async def create_or_update_embed(self) -> None:
+        leaderboard_string = await self.get_leaderboard()
+
+        fields = [
+            {
+                "name": "📃 Ranking",
+                "value": f"```{leaderboard_string}```",
+                "inline": True
+            }
+        ]
+
+        embed_schema = EmbedSchema(
+            title="BattleBall Leaderboard",
+            description="It's probably not updated in real-time, but it should give you a good idea of who's on top!",
+            author_url=self.config.app_url,
+            fields=fields,
+            color=0xF4D701
+        )
+
+        embed = await EmbedController().build_embed(embed_schema)
+        battleball_channel = self.bot.get_channel(self.config.battleball_channel_id)
+
+        if not battleball_channel:
+            logger.critical("Battleball channel not found")
+            return
+
+        try:
+            battleball_message = await battleball_channel.fetch_message(self.config.battleball_message_id)
+            await battleball_message.edit(content=None, embed=embed)
+        except discord.NotFound:
+            battleball_message = await battleball_channel.send(content=None, embed=embed)
+            self.config.change_value("battleball_message_id", battleball_message.id)
+        except discord.HTTPException as e:
+            logger.error(f"Failed to create or update embed: {e}")

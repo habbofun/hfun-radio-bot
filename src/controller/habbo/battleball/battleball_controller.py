@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 class BattleballController:
     BASE_URL = "https://origins.habbo.es/api/public/"
 
-    def __init__(self, proxy_file='src/assets/proxies.txt', max_concurrent_requests=100, max_threads=100):
+    def __init__(self, proxy_file='src/assets/proxies.txt', max_concurrent_requests=2, max_threads=5):
         self.proxies = self.load_proxies(proxy_file)
         self.max_concurrent_requests = max_concurrent_requests
         self.executor = ThreadPoolExecutor(max_workers=max_threads)

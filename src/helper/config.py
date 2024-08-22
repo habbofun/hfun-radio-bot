@@ -25,12 +25,17 @@ class Config:
         self.app_name: str = self.settings.get("app_name", "")
         self.app_name_branded: str = f"{self.app_name} • {self.app_url}"
         self.app_version: str = self.settings.get("app_version", "")
-        self.log_file = self.settings.get("log_file", "")
+        self.log_file = "hfun.log"
 
         self.bot_prefix: str = self.settings.get("bot_prefix", "!")
         self.bot_token: str = self.settings.get("bot_token", "")
+
         self.panel_channel_id: int = int(self.settings.get("panel_channel_id", 0))
         self.panel_message_id: int = int(self.settings.get("panel_message_id", 0))
+
+        self.battleball_channel_id: int = int(self.settings.get("battleball_channel_id", 0))
+        self.battleball_message_id: int = int(self.settings.get("battleball_message_id", 0))
+
         self.logs_channel: int = int(self.settings.get("logs_channel", 0))
         self.dev_guild_id: discord.Object = discord.Object(int(self.settings.get("dev_guild_id", 0)))
 

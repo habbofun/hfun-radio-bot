@@ -7,10 +7,9 @@ from src.controller.habbo.battleball.score_manager import ScoreManager
 class BattleUpdate(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.battleball_score_manager = ScoreManager()
+        self.battleball_score_manager = ScoreManager(bot)
 
-    @app_commands.checks.has_permissions(administrator=True)
-    @app_commands.command(name="battle_update", description="Command to try to update a battleball profile data.")
+    @app_commands.command(name="update", description="Command to try to update a battleball profile data.")
     async def battle_update_command(self, interaction: discord.Interaction, username: str):
         await interaction.response.send_message(f"Starting update for {username}. You will receive a DM when the process is complete.", ephemeral=True)
         self.bot.loop.create_task(self.process_battle_update_task(interaction, username))
