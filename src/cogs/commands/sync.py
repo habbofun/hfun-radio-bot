@@ -46,13 +46,6 @@ class SyncCommand(commands.Cog):
         except Exception as e:
             error_message = f"❌ Failed to sync slash commands: {e}"
             logger.critical(error_message)
-        finally:
-            try:
-                await ctx.send(error_message, delete_after=10)  # Optionally delete the error message after a delay
-            except discord.errors.Forbidden:
-                logger.critical("Failed to send error message: Bot does not have permission to send messages.")
-            except Exception as send_error:
-                logger.critical(f"Failed to send error message: {send_error}")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(SyncCommand(bot))
