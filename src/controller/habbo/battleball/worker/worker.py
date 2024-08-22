@@ -53,7 +53,7 @@ class BattleballWorker:
             for match_data in matches:
                 match_id = match_data.metadata.matchId
 
-                logger.info(f"Processing match '{match_id}' for user '{queue_item['username']}'")
+                logger.debug(f"Processing match '{match_id}' for user '{queue_item['username']}'")
                 participant = next((p for p in match_data.info.participants if p.gamePlayerId == bouncer_player_id), None)
 
                 if participant:
