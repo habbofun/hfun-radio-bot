@@ -4,6 +4,7 @@ from pyfiglet import Figlet
 from discord.ext import commands
 from src.helper.config import Config
 from pystyle import Colors, Colorate, Center
+from src.views.battleball.panel import BattleballPanelView
 
 class OnReady(commands.Cog):
     def __init__(self, bot):
@@ -19,6 +20,10 @@ class OnReady(commands.Cog):
         centered_logo = Center.XCenter(Colorate.Vertical(Colors.white_to_blue, logo, 1))
         divider = Center.XCenter(Colorate.Vertical(Colors.white_to_blue, "────────────────────────────────────────────", 1))
         print(f"{centered_logo}\n{divider}\n\n")
+
+        # Make the views persistent
+        logger.debug("Setting persistent views...")
+        self.bot.add_view(BattleballPanelView())
 
         logger.info(f"Logged in as {self.bot.user.name}#{self.bot.user.discriminator}.")
 

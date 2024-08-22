@@ -88,6 +88,19 @@ class ScoreManager:
             return result[0] if result else None
 
     async def get_leaderboard(self, mobile_version: bool = False):
+        if mobile_version:
+            formatted_leaderboard = [
+                (
+                    f"Position: {idx + 1}\n"
+                    f"Username: {username}\n"
+                    f"Score: {score}\n"
+                    f"Ranked: {ranked_matches}\n"
+                    f"Non-Ranked: {non_ranked_matches}\n"
+                )
+                for idx, (username, score, ranked_matches, non_ranked_matches) in enumerate(leaderboard)
+            ]
+            return "\n".join(formatted_leaderboard)
+
         leaderboard = await self.db_service.get_leaderboard()
         formatted_leaderboard = [
             (idx + 1, username, score, ranked_matches, non_ranked_matches)
