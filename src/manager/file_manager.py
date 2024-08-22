@@ -5,28 +5,29 @@ from src.helper.singleton import Singleton
 
 defaultConfig = """
 # [APP]
-app_logo: 
-app_name: 
-app_url: 
-app_version: 
-log_file: 
+app_logo: # String, URL to the app logo
+app_name: # String, Name of the app
+app_url: # String, URL to the app
+app_version: # String, Version of the app
+log_file: # String, Path to the log file (Example: ai_bot.log)
 
 # [BOT]
-bot_prefix: 
-bot_token: 
-dev_guild_id: 
-logs_channel: 
+bot_prefix: # String, Prefix of the bot
+bot_token: # String, Token of the bot
+dev_guild_id: # Integer, ID of the developer guild
+logs_channel: # Integer, ID of the logs channel
 
-panel_channel_id: 
-panel_message_id: 
-battleball_channel_id: 
-battleball_message_id: 
+# [Channels]
+panel_channel_id: # Integer, ID of the panel channel
+panel_message_id: # Integer, ID of the panel message
+battleball_channel_id: # Integer, ID of the battleball channel
+battleball_message_id: # Integer, ID of the battleball message
 
 # [Radio]
-azuracast_station_url: 
-azuracast_station_name: 
-azuracast_api_url: 
-azuracast_api_key: 
+azuracast_station_url: # String, URL to the Azuracast station
+azuracast_station_name: # String, Name of the Azuracast station
+azuracast_api_url: # String, URL to the Azuracast API
+azuracast_api_key: # String, API key of the Azuracast API
 """
 
 @Singleton
