@@ -40,7 +40,6 @@ and
 Don't use quotes or double quotes in the values of the configuration file.
 ```yaml
 # [APP]
-# [APP]
 app_logo: # String, URL to the app logo
 app_name: # String, Name of the app
 app_url: # String, URL to the app
@@ -52,8 +51,12 @@ bot_prefix: # String, Prefix of the bot
 bot_token: # String, Token of the bot
 dev_guild_id: # Integer, ID of the developer guild
 logs_channel: # Integer, ID of the logs channel
+
+# [Channels]
 panel_channel_id: # Integer, ID of the panel channel
 panel_message_id: # Integer, ID of the panel message
+battleball_channel_id: # Integer, ID of the battleball channel
+battleball_message_id: # Integer, ID of the battleball message
 
 # [Radio]
 azuracast_station_url: # String, URL to the Azuracast station
