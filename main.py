@@ -62,9 +62,7 @@ class Bot(commands.Bot):
         while True:
             interaction, coro = await self.command_queue.get()
             try:
-                await coro
-            except discord.errors.NotFound as e:
-                await self.handle_not_found_error(interaction, e)
+                self.loop.create_task(coro)
             except Exception as e:
                 await self.handle_generic_error(interaction, e)
             finally:

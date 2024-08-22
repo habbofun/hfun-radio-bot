@@ -2,36 +2,29 @@ import discord
 from loguru import logger
 from discord.ext import commands
 from discord import app_commands
-from src.controller.discord.schema.embed_schema import EmbedSchema
-from src.controller.discord.embed_controller import EmbedController
+from src.controller.habbo.battleball.score_manager import ScoreManager
 
 class BattleUpdate(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.battleball_score_manager = ScoreManager()
 
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.command(name="battle_update", description="Command to try to update a battleball profile data.")
-    async def battle_update_command(self, interaction: discord.Interaction):
-        await self.bot.command_queue.put((interaction, self.process_battle_update_command(interaction)))
+    async def battle_update_command(self, interaction: discord.Interaction, username: str):
+        await interaction.response.send_message(f"Starting update for {username}. You will receive a DM when the process is complete.", ephemeral=True)
+        self.bot.loop.create_task(self.process_battle_update_task(interaction, username))
 
-    async def process_battle_update_command(self, interaction: discord.Interaction):
+    async def process_battle_update_task(self, interaction: discord.Interaction, username: str):
         try:
+            await self.battleball_score_manager.process_user_scores(username)
 
-            embed_schema = EmbedSchema(
-                title="",
-                description=f"",
-                color=0xb34760
-            )
-
-            embed = await EmbedController().build_embed(embed_schema)
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            user = await self.bot.fetch_user(interaction.user.id)
+            await user.send(f"Update complete for {username}.")
         except Exception as e:
-            logger.critical(f"Failed to respond to battle_update command: {e}")
-            if not interaction.response.is_done():
-                try:
-                    await interaction.followup.send("There was an error trying to execute that command!", ephemeral=True)
-                except Exception as followup_error:
-                    logger.critical(f"Failed to send follow-up message: {followup_error}")
+            logger.critical(f"Failed to update battle profile for {username}: {e}")
+            user = await self.bot.fetch_user(interaction.user.id)
+            await user.send(f"There was an error trying to update the profile for {username}. Please try again later.")
 
     @battle_update_command.error
     async def battle_update_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
