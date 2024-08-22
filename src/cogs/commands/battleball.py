@@ -2,6 +2,7 @@ import discord
 from loguru import logger
 from discord.ext import commands
 from discord import app_commands
+from src.views.battleball.panel import BattleballPanelView
 from src.controller.habbo.battleball.score_manager import ScoreManager
 
 class BattleLeaderboard(commands.Cog):
@@ -34,7 +35,7 @@ class BattleLeaderboard(commands.Cog):
             await self.battleball_score_manager.create_or_update_embed()
 
             # Send a confirmation message
-            await interaction.followup.send("BattleBall leaderboard updated.", ephemeral=True)
+            await interaction.followup.send("BattleBall leaderboard updated.", ephemeral=True, view=BattleballPanelView())
         except Exception as e:
             logger.error(f"An error occurred while trying to get the leaderboard: {e}")
             await interaction.followup.send("An error occurred while trying to get the leaderboard.", ephemeral=True)
