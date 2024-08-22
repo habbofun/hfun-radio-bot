@@ -29,7 +29,7 @@ class BattleLeaderboard(commands.Cog):
         try:
             battleball_message = await battleball_channel_id.send("Loading BattleBall leaderboard...", view=BattleballPanelView())
 
-            if not await self.battleball_score_manager.update_battleball_config_values(battleball_channel_id.id, battleball_message.id):
+            if not await self.battleball_score_manager.update_battleball_config_values(battleball_message.channel.id, battleball_message.id):
                 await battleball_channel_id.send("Failed to update battleball config values.", ephemeral=True)
                 return
 
