@@ -1,7 +1,8 @@
 import aiosqlite
+from loguru import logger
 from typing import Optional
-from src.database.models.battleball import User, Match
 from src.helper.singleton import Singleton
+from src.database.models.battleball import User, Match
 
 @Singleton
 class BattleballDatabaseService:
@@ -13,7 +14,6 @@ class BattleballDatabaseService:
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY,
-                    discord_id INTEGER UNIQUE,
                     username TEXT UNIQUE,
                     total_score INTEGER DEFAULT 0,
                     ranked_matches INTEGER DEFAULT 0,
@@ -23,7 +23,7 @@ class BattleballDatabaseService:
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS queue (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT,
+                    username TEXT UNIQUE,
                     discord_id INTEGER,
                     position INTEGER,
                     UNIQUE(username)
@@ -41,20 +41,33 @@ class BattleballDatabaseService:
                 )
             """)
             await db.commit()
+            logger.debug("Database initialized with tables: users, queue, matches")
 
-    async def add_user(self, username: str, discord_id: int):
-        username = username.lower()  # Convert username to lowercase
+    async def add_user(self, username: str):
+        username = username.lower()
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("""
-                INSERT OR IGNORE INTO users (discord_id, username)
-                VALUES (?, ?)
-            """, (discord_id, username))
-            await db.commit()
-
-    async def get_user_id(self, discord_id: int) -> Optional[int]:
-        async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("SELECT id FROM users WHERE discord_id = ?", (discord_id,)) as cursor:
+            async with db.execute("SELECT id FROM users WHERE username = ?", (username,)) as cursor:
                 row = await cursor.fetchone()
+                if row:
+                    logger.debug(f"User '{username}' already exists in the database with ID '{row[0]}'.")
+                    return row[0]
+                else:
+                    await db.execute("""
+                        INSERT INTO users (username)
+                        VALUES (?)
+                    """, (username,))
+                    await db.commit()
+                    logger.debug(f"User '{username}' added to the database.")
+
+    async def get_user_id(self, username: str) -> Optional[int]:
+        username = username.lower()
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute("SELECT id FROM users WHERE username = ?", (username,)) as cursor:
+                row = await cursor.fetchone()
+                if row:
+                    logger.debug(f"User ID '{row[0]}' found for username '{username}'.")
+                else:
+                    logger.warning(f"No User ID found for username '{username}'.")
                 return row[0] if row else None
 
     async def update_user_score_and_matches(self, user_id: int, score: int, is_ranked: bool):
@@ -72,6 +85,7 @@ class BattleballDatabaseService:
                     WHERE id = ?
                 """, (score, user_id))
             await db.commit()
+        logger.debug(f"Updated user ID '{user_id}' with score '{score}' and ranked status '{is_ranked}'.")
 
     async def add_match(self, match: Match):
         async with aiosqlite.connect(self.db_path) as db:
@@ -80,19 +94,24 @@ class BattleballDatabaseService:
                 VALUES (?, ?, ?, ?)
             """, (match.match_id, match.user_id, match.game_score, match.ranked))
             await db.commit()
+        logger.debug(f"Added match '{match.match_id}' for user ID '{match.user_id}' with score '{match.game_score}'.")
 
     async def get_checked_matches(self, user_id: int):
         async with aiosqlite.connect(self.db_path) as db:
             async with db.execute("SELECT match_id FROM matches WHERE user_id = ? AND ranked = 1", (user_id,)) as cursor:
-                return [row[0] for row in await cursor.fetchall()]
+                matches = [row[0] for row in await cursor.fetchall()]
+        logger.debug(f"Retrieved {len(matches)} checked matches for user ID '{user_id}'.")
+        return matches
 
     async def add_to_queue(self, username: str, discord_id: int) -> Optional[int]:
-        username = username.lower()  # Convert username to lowercase
+        username = username.lower()
         async with aiosqlite.connect(self.db_path) as db:
-            # Check if the username is already in the queue
-            async with db.execute("SELECT id FROM queue WHERE username = ?", (username,)) as cursor:
-                if await cursor.fetchone():
-                    return None  # Username already in queue, do not add again
+            # Check if the username is already in the queue and return the position
+            async with db.execute("SELECT position FROM queue WHERE username = ?", (username,)) as cursor:
+                row = await cursor.fetchone()
+                if row:
+                    logger.debug(f"User '{username}' is already in the queue at position '{row[0]}'")
+                    return row[0]
 
             cursor = await db.execute("SELECT MAX(position) FROM queue")
             max_position = await cursor.fetchone()
@@ -103,6 +122,7 @@ class BattleballDatabaseService:
                 VALUES (?, ?, ?)
             """, (username, discord_id, position))
             await db.commit()
+            logger.debug(f"User '{username}' added to the queue at position '{position}'.")
             return position
 
     async def get_next_in_queue(self) -> Optional[dict]:
@@ -110,13 +130,16 @@ class BattleballDatabaseService:
             async with db.execute("SELECT * FROM queue ORDER BY position LIMIT 1") as cursor:
                 row = await cursor.fetchone()
                 if row:
+                    logger.debug(f"Next in queue: ID '{row[0]}', Username '{row[1]}', Discord ID '{row[2]}', Position '{row[3]}'")
                     return {"id": row[0], "username": row[1], "discord_id": row[2], "position": row[3]}
+                logger.debug("Queue is empty.")
                 return None
 
     async def remove_from_queue(self, queue_id: int):
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("DELETE FROM queue WHERE id = ?", (queue_id,))
             await db.commit()
+        logger.debug(f"Removed queue item with ID '{queue_id}'.")
 
     async def get_leaderboard(self):
         async with aiosqlite.connect(self.db_path) as db:
@@ -125,4 +148,6 @@ class BattleballDatabaseService:
                 FROM users
                 ORDER BY total_score DESC
             """) as cursor:
-                return await cursor.fetchall()
+                leaderboard = await cursor.fetchall()
+        logger.debug(f"Retrieved leaderboard with {len(leaderboard)} users.")
+        return leaderboard

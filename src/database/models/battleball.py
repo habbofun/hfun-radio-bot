@@ -1,11 +1,11 @@
 from pydantic import BaseModel
 
 class User(BaseModel):
-    discord_id: int
+    id: int
     username: str
-    total_score: int = 0
-    ranked_matches: int = 0
-    non_ranked_matches: int = 0
+    total_score: int
+    ranked_matches: int
+    non_ranked_matches: int
 
 class Match(BaseModel):
     match_id: str
