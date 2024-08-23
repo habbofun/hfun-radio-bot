@@ -1,6 +1,6 @@
+import discord
 from loguru import logger
 from discord.ext import commands
-import discord
 
 class GuildJoin(commands.Cog):
     """

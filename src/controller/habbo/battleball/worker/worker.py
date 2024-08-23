@@ -3,6 +3,7 @@ from loguru import logger
 from tabulate import tabulate
 from discord.ext import commands
 from src.helper.config import Config
+from src.helper.dmer import DiscordDmer
 from src.helper.singleton import Singleton
 from src.controller.habbo.battleball.api_client.client import HabboApiClient
 from src.database.service.battleball_service import BattleballDatabaseService, Match
@@ -14,6 +15,7 @@ class BattleballWorker:
         self.config = Config()
         self.db_service = BattleballDatabaseService()
         self.api_client = HabboApiClient()
+        self.dmer = DiscordDmer(bot)
         self.running = False
         self.current_user = None
         self.remaining_matches = 0  # Track the number of remaining matches
@@ -44,18 +46,26 @@ class BattleballWorker:
         user_id = await self.db_service.get_user_id(username)
 
         if not user_id:
+            self.dmer.send_dm(discord_id, f"{self.config.abajo_icon} Failed to process user '{username}'.")
             logger.error(f"User ID not found for username '{username}'")
             return
 
         self.current_user = username
-        bouncer_player_id = await self.api_client.fetch_user_bouncer_id(username)
-        match_ids = await self.api_client.fetch_match_ids(bouncer_player_id)
+        user_data = await self.api_client.fetch_user_data(username)
+
+        if not user_data:
+            logger.error(f"User data not found for username '{username}'")
+            return
+
         checked_match_ids = await self.db_service.get_checked_matches(user_id)
+
+        bouncer_player_id = user_data.bouncerPlayerId
+        match_ids = await self.api_client.fetch_match_ids(bouncer_player_id)
 
         new_match_ids = [match_id for match_id in match_ids if match_id not in checked_match_ids]
         self.remaining_matches = len(new_match_ids)  # Set the initial count of remaining matches
 
-        logger.info(f"Processing {self.remaining_matches} new matches for {username}")
+        logger.info(f"Processing '{self.remaining_matches}' new matches for '{username}'")
 
         for i in range(0, len(new_match_ids), 3):
             batch = new_match_ids[i:i+3]
@@ -88,13 +98,11 @@ class BattleballWorker:
                 self.remaining_matches -= 1
 
         try:
-            user_that_queued = self.bot.get_user(discord_id)
-            if user_that_queued:
-                await user_that_queued.send(f"Job for user `{username}` has been completed.")
+            self.dmer.send_dm(discord_id, f"{self.config.arriba_icon} Job for user `{username}` has been completed.")
         except discord.HTTPException as e:
             logger.error(f"Failed to send DM to user '{username}': {e}")
 
-        logger.info(f"Processed {len(new_match_ids)} matches for {username} in {time.time() - start_time:.2f} seconds")
+        logger.info(f"Processed {len(new_match_ids)} matches for '{username}' in '{time.time() - start_time:.2f}' seconds")
         self.current_user = None
         self.remaining_matches = 0  # Reset after processing
 

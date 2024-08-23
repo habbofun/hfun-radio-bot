@@ -25,24 +25,24 @@ class HabboApiClient:
         return random.choice(self.proxies)
 
     async def fetch_user_data(self, username: str) -> User:
-        username = username.lower()
-        for attempt in range(self.MAX_ATTEMPTS):
-            try:
-                proxy = self.get_random_proxy()
-                async with httpx.AsyncClient(proxies=proxy, timeout=self.TIMEOUT) as client:
-                    response = await client.get(f"{self.BASE_URL}/users?name={username}")
-                    response.raise_for_status()
-                    data = response.json()
-                    return User(**data)
-            except (httpx.RequestError, httpx.HTTPStatusError) as e:
-                if attempt < self.MAX_ATTEMPTS - 1:
-                    continue
-                else:
-                    raise e
-
-    async def fetch_user_bouncer_id(self, username: str) -> str:
-        user_data = await self.fetch_user_data(username)
-        return user_data.bouncerPlayerId
+        try:
+            username = username.lower()
+            for attempt in range(self.MAX_ATTEMPTS):
+                try:
+                    proxy = self.get_random_proxy()
+                    async with httpx.AsyncClient(proxies=proxy, timeout=self.TIMEOUT) as client:
+                        response = await client.get(f"{self.BASE_URL}/users?name={username}")
+                        response.raise_for_status()
+                        data = response.json()
+                        return User(**data)
+                except (httpx.RequestError, httpx.HTTPStatusError) as e:
+                    if attempt < self.MAX_ATTEMPTS - 1:
+                        continue
+                    else:
+                        raise e
+        except Exception as e:
+            logger.error(f"Failed to fetch user data for username '{username}': {e}")
+            return None
 
     async def fetch_match_ids(self, bouncerPlayerId: str, offset: int = 0, limit: int = 100) -> List[str]:
         match_ids = []
