@@ -65,4 +65,4 @@ class BattleballPanelView(discord.ui.View):
                 queue_display.append(f"{self.config.abajo_icon} **{position}**. {username} (Added by: <@{discord_id}>)")
 
         queue_message = "\n".join(queue_display)
-        await interaction.response.send_message(content=queue_message, ephemeral=True)
+        await interaction.response.send_message(f"**Current Queue:**\n{queue_message}", ephemeral=True)
