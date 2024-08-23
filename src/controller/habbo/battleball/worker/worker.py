@@ -31,6 +31,9 @@ class BattleballWorker:
 
         self.running = False
 
+    async def stop(self):
+        self.running = False
+
     async def process_user(self, queue_item):
         start_time = time.time()
 
