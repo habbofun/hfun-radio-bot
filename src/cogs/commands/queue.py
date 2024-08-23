@@ -8,7 +8,7 @@ class BattleQueue(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.db_service = BattleballDatabaseService()
-        self.worker = BattleballWorker(bot)  # Initialize the worker
+        self.battleball_worker = BattleballWorker(bot)  # Initialize the worker
 
     @app_commands.command(name="queue", description="Displays the current queue for BattleBall profile updates.")
     async def battle_queue_command(self, interaction: discord.Interaction):

@@ -9,7 +9,7 @@ class BattleRemove(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.db_service = BattleballDatabaseService()
-        self.worker = BattleballWorker(bot)
+        self.battleball_worker = BattleballWorker(bot)
 
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.command(name="fulminate", description="Command to delete a BattleBall profile's data.")

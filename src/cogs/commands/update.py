@@ -9,7 +9,7 @@ class BattleUpdate(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.db_service = BattleballDatabaseService()
-        self.worker = BattleballWorker(bot)
+        self.battleball_worker = BattleballWorker(bot)
 
     @app_commands.command(name="update", description="Command to update a battleball profile's data.")
     async def battle_update_command(self, interaction: discord.Interaction, username: str):
