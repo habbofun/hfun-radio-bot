@@ -111,20 +111,19 @@ class BattleballWorker:
     async def create_or_update_embed(self) -> None:
         leaderboard_string = await self.get_leaderboard()
 
-        # Ensure the leaderboard string is within Discord's 1024-character limit.
-        if len(leaderboard_string) > 1024:
-            leaderboard_string = leaderboard_string[:1020] + "..."  # Truncate and add ellipsis
+        # Ensure the leaderboard string is within Discord's 4096-character limit for the description.
+        if len(leaderboard_string) > 4096:
+            leaderboard_string = leaderboard_string[:4092] + "..."  # Truncate and add ellipsis
 
         embed = discord.Embed(
             title="BattleBall Leaderboard",
-            description="It's probably not updated in real-time, but it should give you a good idea of who's on top!",
-            color=0xF4D701
+            description=f"```{leaderboard_string}```",
+            color=0xF4D701,
+            timestamp=discord.utils.utcnow()  # Set the current time as the timestamp
         )
 
-        embed.add_field(
-            name="📃 Ranking",
-            value=f"```{leaderboard_string}```",
-            inline=True
+        embed.set_footer(
+            text="It's probably not updated in real-time, but it should give you a good idea of who's on top!"
         )
 
         battleball_channel = self.bot.get_channel(self.config.battleball_channel_id)
