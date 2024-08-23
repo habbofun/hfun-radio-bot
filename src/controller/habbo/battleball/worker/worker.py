@@ -1,7 +1,7 @@
-import asyncio, discord, time
+import time, discord, asyncio
 from loguru import logger
-from discord.ext import commands
 from tabulate import tabulate
+from discord.ext import commands
 from src.helper.config import Config
 from src.helper.singleton import Singleton
 from src.controller.habbo.battleball.api_client.client import HabboApiClient
@@ -22,7 +22,7 @@ class BattleballWorker:
             queue_item = await self.db_service.get_next_in_queue()
             if not queue_item:
                 break
-            
+
             await self.process_user(queue_item)
             await self.db_service.remove_from_queue(queue_item["id"])
             await asyncio.sleep(1)  # Throttle to avoid API rate limits
@@ -32,39 +32,42 @@ class BattleballWorker:
     async def process_user(self, queue_item):
         start_time = time.time()
 
-        await self.db_service.add_user(queue_item["username"], queue_item["discord_id"])
+        username = queue_item["username"].lower()
+        discord_id = queue_item["discord_id"]
 
-        user_id = await self.db_service.get_user_id(queue_item["discord_id"])
-        bouncer_player_id = await self.api_client.fetch_user_bouncer_id(queue_item["username"])
+        await self.db_service.add_user(username)
+        user_id = await self.db_service.get_user_id(username)
+
+        if not user_id:
+            logger.error(f"User ID not found for username '{username}'")
+            return
+
+        bouncer_player_id = await self.api_client.fetch_user_bouncer_id(username)
         match_ids = await self.api_client.fetch_match_ids(bouncer_player_id)
         checked_match_ids = await self.db_service.get_checked_matches(user_id)
 
-        temp_match_ids = []
-        for match_id in match_ids:
-            if match_id not in checked_match_ids:
-                temp_match_ids.append(match_id)
+        new_match_ids = [match_id for match_id in match_ids if match_id not in checked_match_ids]
 
-        logger.info(f"Processing '{len(temp_match_ids)}' matches for '{queue_item['username']}'")
+        logger.info(f"Processing {len(new_match_ids)} new matches for {username}")
 
-        for i in range(0, len(temp_match_ids), 2):
-            batch = temp_match_ids[i:i+2]
+        for i in range(0, len(new_match_ids), 3):
+            batch = new_match_ids[i:i+3]
             matches = await self.api_client.fetch_match_data_batch(batch)
 
             for match_data in matches:
                 match_id = match_data.metadata.matchId
-
-                logger.debug(f"Processing match '{match_id}' for user '{queue_item['username']}'")
                 participant = next((p for p in match_data.info.participants if p.gamePlayerId == bouncer_player_id), None)
 
                 if participant:
                     score = participant.gameScore
                     is_ranked = match_data.info.ranked
+                    logger.info(f"Processing match '{match_id}' for user '{username}' with score '{score}' and ranked status '{is_ranked}'")
                 else:
                     score = 0
                     is_ranked = False
 
                 match = Match(
-                    match_id=match_data.metadata.matchId,
+                    match_id=match_id,
                     user_id=user_id,
                     game_score=score,
                     ranked=is_ranked
@@ -73,12 +76,13 @@ class BattleballWorker:
                 await self.db_service.update_user_score_and_matches(user_id, score, is_ranked)
 
         try:
-            user_that_queued = self.bot.get_user(queue_item["discord_id"])
-            await user_that_queued.send(f"Job for user `{queue_item['username']}` has been completed.")
+            user_that_queued = self.bot.get_user(discord_id)
+            if user_that_queued:
+                await user_that_queued.send(f"Job for user `{username}` has been completed.")
         except discord.HTTPException as e:
-            logger.error(f"Failed to send DM to user '{queue_item['username']}': {e}")
+            logger.error(f"Failed to send DM to user '{username}': {e}")
 
-        logger.info(f"Processed {len(temp_match_ids)} matches for {queue_item['username']} in {time.time() - start_time:.2f} seconds")
+        logger.info(f"Processed {len(new_match_ids)} matches for {username} in {time.time() - start_time:.2f} seconds")
 
     async def create_or_update_embed(self) -> None:
         leaderboard_string = await self.get_leaderboard()
