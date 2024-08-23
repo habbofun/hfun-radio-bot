@@ -5,6 +5,7 @@ from discord.ext import commands
 from src.helper.config import Config
 from pystyle import Colors, Colorate, Center
 from src.views.battleball.panel import BattleballPanelView
+from src.controller.habbo.battleball.worker.worker import BattleballWorker
 
 class OnReady(commands.Cog):
     """
@@ -14,6 +15,7 @@ class OnReady(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config()
+        self.battleball_worker = BattleballWorker(self)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -30,6 +32,10 @@ class OnReady(commands.Cog):
 
         logger.debug("Setting persistent views...")
         self.bot.add_view(BattleballPanelView(self.bot))
+
+        logger.debug("Loading workers...")
+        if not self.battleball_worker.running:
+            await self.battleball_worker.start()
 
         logger.info(f"Logged in as {self.bot.user.name}#{self.bot.user.discriminator}.")
 

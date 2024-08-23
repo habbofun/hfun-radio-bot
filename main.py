@@ -60,6 +60,7 @@ class Bot(commands.Bot):
                 if filename.endswith(".py") and not filename.startswith("_"):
                     await self.load_extension(f"src.cogs.loops.{filename[:-3]}")
 
+            logger.debug("Starting command worker...")
             self.loop.create_task(self.command_worker())
 
             logger.info("Setup completed!")
