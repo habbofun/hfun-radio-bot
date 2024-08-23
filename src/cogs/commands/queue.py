@@ -1,12 +1,14 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
+from src.helper.config import Config
 from src.controller.habbo.battleball.worker.worker import BattleballWorker
 from src.database.service.battleball_service import BattleballDatabaseService
 
 class BattleQueue(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.config = Config()
         self.db_service = BattleballDatabaseService()
         self.battleball_worker = BattleballWorker(bot)  # Initialize the worker
 
@@ -23,9 +25,9 @@ class BattleQueue(commands.Cog):
 
                 if username == self.worker.current_user:
                     remaining_matches = await self.worker.get_remaining_matches()
-                    queue_display.append(f"**{position}**. {username} (Added by: <@{discord_id}> - {remaining_matches} left)")
+                    queue_display.append(f"{self.config.arriba_icon} **{position}**. {username} (Added by: <@{discord_id}> - {remaining_matches} left)")
                 else:
-                    queue_display.append(f"**{position}**. {username} (Added by: <@{discord_id}>)")
+                    queue_display.append(f"{self.config.abajo_icon} **{position}**. {username} (Added by: <@{discord_id}>)")
 
             queue_message = "\n".join(queue_display)
             await interaction.response.send_message(f"**Current Queue:**\n{queue_message}", ephemeral=True)

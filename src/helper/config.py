@@ -49,6 +49,9 @@ class Config:
         with open(self.CONFIG_FILE_PATH, "r") as file:
             self.settings = yaml.load(file, Loader=SafeLoader)
 
+        self.arriba_icon: str = "<:arriba:1269762468671131658>"
+        self.abajo_icon: str = "<:abajo:1269762527374610512>"
+
         self.rainbow_line_gif: str = "https://i.imgur.com/mnydyND.gif"
         self.app_logo: str = self.settings.get("app_logo", "")
         self.app_url: str = self.settings.get("app_url", "")
