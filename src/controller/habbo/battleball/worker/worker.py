@@ -72,6 +72,8 @@ class BattleballWorker:
                     game_score=score,
                     ranked=is_ranked
                 )
+
+                logger.debug(f"Attempting to add match '{match_id}' to the database for user ID '{user_id}'.")
                 await self.db_service.add_match(match)
                 await self.db_service.update_user_score_and_matches(user_id, score, is_ranked)
 
