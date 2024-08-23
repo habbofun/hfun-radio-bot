@@ -46,7 +46,6 @@ class BattleballWorker:
         user_id = await self.db_service.get_user_id(username)
 
         if not user_id:
-            self.dmer.send_dm(discord_id, f"{self.config.abajo_icon} Failed to process user '{username}'.")
             logger.error(f"User ID not found for username '{username}'")
             return
 
@@ -54,6 +53,7 @@ class BattleballWorker:
         user_data = await self.api_client.fetch_user_data(username)
 
         if not user_data:
+            self.dmer.send_dm(discord_id, f"{self.config.abajo_icon} Failed to process user '{username}'.")
             logger.error(f"User data not found for username '{username}'")
             return
 
