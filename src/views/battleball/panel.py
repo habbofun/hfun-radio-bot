@@ -4,6 +4,7 @@ from src.helper.config import Config
 from src.controller.discord.schema.embed_schema import EmbedSchema
 from src.controller.discord.embed_controller import EmbedController
 from src.controller.habbo.battleball.worker.worker import BattleballWorker
+from src.database.service.battleball_service import BattleballDatabaseService
 
 class BattleballPanelView(discord.ui.View):
     """
@@ -14,6 +15,7 @@ class BattleballPanelView(discord.ui.View):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.config = Config()
+        self.db_service = BattleballDatabaseService()
         self.battleball_worker = BattleballWorker(bot)
         super().__init__(timeout=None)
 
@@ -36,6 +38,43 @@ class BattleballPanelView(discord.ui.View):
             description="It's probably not updated in real-time, but it should give you a good idea of who's on top!",
             author_url=self.config.app_url,
             fields=fields,
+            color=0xF4D701
+        )
+
+        embed = await EmbedController().build_embed(embed_schema)
+        await interaction.response.send_message(content=None, embed=embed, ephemeral=True)
+
+    # Make a button that shows the queue
+    @discord.ui.button(label='🔍 Queue', style=discord.ButtonStyle.blurple, custom_id='battleball_panel:queue')
+    async def queue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        queue_list = await self.db_service.get_queue()
+
+        if queue_list:
+            queue_display = []
+            for idx, entry in enumerate(queue_list):
+                position = idx + 1
+                username = entry['username']
+                discord_id = entry['discord_id']
+
+                if username == self.worker.current_user:
+                    remaining_matches = await self.worker.get_remaining_matches()
+                    queue_display.append(f"**{position}**. {username} (Added by: <@{discord_id}> - {remaining_matches} left)")
+                else:
+                    queue_display.append(f"**{position}**. {username} (Added by: <@{discord_id}>)")
+
+            queue_message = "\n".join(queue_display)
+
+        embed_schema = EmbedSchema(
+            title="BattleBall Queue",
+            description="The current queue for BattleBall.",
+            author_url=self.config.app_url,
+            fields=[
+                {
+                    "name": "📋 Queue",
+                    "value": f"```{queue_message}```",
+                    "inline": True
+                }
+            ],
             color=0xF4D701
         )
 
