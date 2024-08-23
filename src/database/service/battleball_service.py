@@ -141,6 +141,20 @@ class BattleballDatabaseService:
             await db.commit()
         logger.debug(f"Removed queue item with ID '{queue_id}'.")
 
+    async def fulminate_user(self, username: str):
+        # Delete the user and everything related to them in every table
+        username = username.lower()
+        async with aiosqlite.connect(self.db_path) as db:
+            user_id = await self.get_user_id(username)
+            if user_id:
+                await db.execute("DELETE FROM users WHERE id = ?", (user_id,))
+                await db.execute("DELETE FROM queue WHERE username = ?", (username,))
+                await db.execute("DELETE FROM matches WHERE user_id = ?", (user_id,))
+                await db.commit()
+                logger.debug(f"Fulminated user '{username}' with ID '{user_id}'.")
+            else:
+                logger.warning(f"User '{username}' not found in the database.")
+
     async def get_leaderboard(self):
         async with aiosqlite.connect(self.db_path) as db:
             async with db.execute("""
