@@ -2,7 +2,10 @@ import discord
 from loguru import logger
 from discord.ext import commands
 from discord import app_commands
+from src.helper.config import Config
 from src.views.battleball.panel import BattleballPanelView
+from src.controller.discord.schema.embed_schema import EmbedSchema
+from src.controller.discord.embed_controller import EmbedController
 from src.controller.habbo.battleball.worker.worker import BattleballWorker
 
 class BattleLeaderboard(commands.Cog):
@@ -14,6 +17,7 @@ class BattleLeaderboard(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.config = Config()
         self.battleball_worker = BattleballWorker(bot)
 
     @app_commands.checks.has_permissions(administrator=True)
@@ -27,7 +31,15 @@ class BattleLeaderboard(commands.Cog):
 
     async def process_battle_leaderboard_task(self, interaction: discord.Interaction, battleball_channel_id: discord.TextChannel):
         try:
-            battleball_message = await battleball_channel_id.send("Loading BattleBall leaderboard...", view=BattleballPanelView(self.bot))
+            embed_schema = EmbedSchema(
+                title="BattleBall Leaderboard",
+                description="It's probably not updated in real-time, but it should give you a good idea of who's on top!",
+                author_url=self.config.app_url,
+                color=0xF4D701
+            )
+
+            embed = await EmbedController().build_embed(embed_schema)
+            battleball_message = await battleball_channel_id.send(embed=embed, view=BattleballPanelView(self.bot))
 
             if not await self.battleball_worker.update_battleball_config_values(battleball_message.channel.id, battleball_message.id):
                 await battleball_channel_id.send("Failed to update battleball config values.", ephemeral=True)
