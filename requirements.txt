@@ -6,3 +6,4 @@ pystyle
 PyYAML
 pydantic
 tabulate
+discord.py
