@@ -15,20 +15,12 @@ class BattleRemove(commands.Cog):
     @app_commands.command(name="fulminate", description="Command to delete a BattleBall profile's data.")
     async def battle_fulminate_command(self, interaction: discord.Interaction, username: str):
         await self.db_service.fulminate_user(username)
-        
+
         await interaction.response.send_message(
             f"The user `{username}` and all associated data have been permanently deleted.",
             ephemeral=True
         )
         logger.info(f"User '{interaction.user.name}' triggered fulmination for '{username}'")
-
-    @app_commands.command(name="leaderboard", description="Display the BattleBall leaderboard.")
-    async def leaderboard_command(self, interaction: discord.Interaction, mobile_version: bool = False):
-        leaderboard = await self.worker.get_leaderboard(mobile_version)
-        await interaction.response.send_message(leaderboard, ephemeral=True)
-
-    async def cog_unload(self):
-        await self.worker.stop()
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(BattleRemove(bot))
