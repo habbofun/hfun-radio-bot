@@ -49,34 +49,20 @@ class BattleballPanelView(discord.ui.View):
     async def queue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         queue_list = await self.db_service.get_queue()
 
-        if queue_list:
-            queue_display = []
-            for idx, entry in enumerate(queue_list):
-                position = idx + 1
-                username = entry['username']
-                discord_id = entry['discord_id']
+        if not queue_list:
+            return await interaction.response.send_message("The queue is currently empty.", ephemeral=True)
 
-                if username == self.battleball_worker.current_user:
-                    remaining_matches = await self.battleball_worker.get_remaining_matches()
-                    queue_display.append(f"{self.config.arriba_icon} **{position}**. {username} (Added by: <@{discord_id}> - {remaining_matches} left)")
-                else:
-                    queue_display.append(f"{self.config.abajo_icon} **{position}**. {username} (Added by: <@{discord_id}>)")
+        queue_display = []
+        for idx, entry in enumerate(queue_list):
+            position = idx + 1
+            username = entry['username']
+            discord_id = entry['discord_id']
 
-            queue_message = "\n".join(queue_display)
+            if username == self.battleball_worker.current_user:
+                remaining_matches = await self.battleball_worker.get_remaining_matches()
+                queue_display.append(f"{self.config.arriba_icon} **{position}**. {username} (Added by: <@{discord_id}> - {remaining_matches} left)")
+            else:
+                queue_display.append(f"{self.config.abajo_icon} **{position}**. {username} (Added by: <@{discord_id}>)")
 
-        embed_schema = EmbedSchema(
-            title="BattleBall Queue",
-            description="The current queue for BattleBall.",
-            author_url=self.config.app_url,
-            fields=[
-                {
-                    "name": "📋 Queue",
-                    "value": f"```{queue_message}```",
-                    "inline": True
-                }
-            ],
-            color=0xF4D701
-        )
-
-        embed = await EmbedController().build_embed(embed_schema)
-        await interaction.response.send_message(content=None, embed=embed, ephemeral=True)
+        queue_message = "\n".join(queue_display)
+        await interaction.response.send_message(content=queue_message, ephemeral=True)
