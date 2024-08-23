@@ -65,7 +65,8 @@ class BattleballWorker:
                 if participant:
                     score = participant.gameScore
                     is_ranked = match_data.info.ranked
-                    logger.info(f"Processing match '{match_id}' ({self.get_remaining_matches()}) for user '{username}' with score '{score}'")
+                    remaining_matches = await self.get_remaining_matches()
+                    logger.info(f"Processing match '{match_id}' ({remaining_matches}) for user '{username}' with score '{score}'")
                 else:
                     score = 0
                     is_ranked = False
