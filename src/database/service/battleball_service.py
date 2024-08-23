@@ -81,9 +81,9 @@ class BattleballDatabaseService:
             else:
                 await db.execute("""
                     UPDATE users
-                    SET total_score = total_score + ?, non_ranked_matches = non_ranked_matches + 1
+                    SET non_ranked_matches = non_ranked_matches + 1
                     WHERE id = ?
-                """, (score, user_id))
+                """, (user_id,))
             await db.commit()
         logger.debug(f"Updated user ID '{user_id}' with score '{score}' and ranked status '{is_ranked}'.")
 

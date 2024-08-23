@@ -63,9 +63,9 @@ class BattleballWorker:
                     is_ranked = match_data.info.ranked
                     logger.info(f"Processing match '{match_id}' for user '{username}' with score '{score}' and ranked status '{is_ranked}'")
                 else:
-                    score = 0
                     is_ranked = False
 
+                # Ensure negative scores are subtracted from the total score
                 match = Match(
                     match_id=match_id,
                     user_id=user_id,
