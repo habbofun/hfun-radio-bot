@@ -58,9 +58,9 @@ class BattleballPanelView(discord.ui.View):
 
                 if username == self.battleball_worker.current_user:
                     remaining_matches = await self.battleball_worker.get_remaining_matches()
-                    queue_display.append(f"**{position}**. {username} (Added by: <@{discord_id}> - {remaining_matches} left)")
+                    queue_display.append(f"{position}. {username} (Added by: <@{discord_id}> - {remaining_matches} left)")
                 else:
-                    queue_display.append(f"**{position}**. {username} (Added by: <@{discord_id}>)")
+                    queue_display.append(f"{position}. {username} (Added by: <@{discord_id}>)")
 
             queue_message = "\n".join(queue_display)
 
