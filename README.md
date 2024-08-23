@@ -1,5 +1,6 @@
 # HFUN Radio
  > Discord bot that connects our Azuracast Server with our Discord.
+![Preview](http://img.kway.club/u/409d19cb-cafe-480c-bb72-4c7c7fa9c434.png)
 
 ## Table of contents
 - [HFUN Radio](#hfun-radio)
