@@ -1,9 +1,9 @@
 import discord
-from loguru import logger
 from discord.ext import commands
 from discord import app_commands
 from src.database.service.battleball_service import BattleballDatabaseService
 from src.controller.habbo.battleball.worker.worker import BattleballWorker
+from loguru import logger
 
 class BattleUpdate(commands.Cog):
     def __init__(self, bot: commands.Bot):
