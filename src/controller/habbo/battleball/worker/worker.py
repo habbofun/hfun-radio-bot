@@ -15,6 +15,8 @@ class BattleballWorker:
         self.db_service = BattleballDatabaseService()
         self.api_client = HabboApiClient()
         self.running = False
+        self.current_user = None
+        self.remaining_matches = 0  # Track the number of remaining matches
 
     async def start(self):
         self.running = True
@@ -42,13 +44,15 @@ class BattleballWorker:
             logger.error(f"User ID not found for username '{username}'")
             return
 
+        self.current_user = username
         bouncer_player_id = await self.api_client.fetch_user_bouncer_id(username)
         match_ids = await self.api_client.fetch_match_ids(bouncer_player_id)
         checked_match_ids = await self.db_service.get_checked_matches(user_id)
 
         new_match_ids = [match_id for match_id in match_ids if match_id not in checked_match_ids]
+        self.remaining_matches = len(new_match_ids)  # Set the initial count of remaining matches
 
-        logger.info(f"Processing {len(new_match_ids)} new matches for {username}")
+        logger.info(f"Processing {self.remaining_matches} new matches for {username}")
 
         for i in range(0, len(new_match_ids), 3):
             batch = new_match_ids[i:i+3]
@@ -61,11 +65,11 @@ class BattleballWorker:
                 if participant:
                     score = participant.gameScore
                     is_ranked = match_data.info.ranked
-                    logger.info(f"Processing match '{match_id}' for user '{username}' with score '{score}' and ranked status '{is_ranked}'")
+                    logger.info(f"Processing match '{match_id}' ({self.get_remaining_matches()}) for user '{username}' with score '{score}'")
                 else:
+                    score = 0
                     is_ranked = False
 
-                # Ensure negative scores are subtracted from the total score
                 match = Match(
                     match_id=match_id,
                     user_id=user_id,
@@ -73,9 +77,12 @@ class BattleballWorker:
                     ranked=is_ranked
                 )
 
-                logger.debug(f"Attempting to add match '{match_id}' to the database for user ID '{user_id}'.")
                 await self.db_service.add_match(match)
                 await self.db_service.update_user_score_and_matches(user_id, score, is_ranked)
+
+                # Decrement the remaining matches count
+                self.remaining_matches -= 1
+                logger.info(f"Remaining matches for user '{username}': {self.remaining_matches}")
 
         try:
             user_that_queued = self.bot.get_user(discord_id)
@@ -85,6 +92,18 @@ class BattleballWorker:
             logger.error(f"Failed to send DM to user '{username}': {e}")
 
         logger.info(f"Processed {len(new_match_ids)} matches for {username} in {time.time() - start_time:.2f} seconds")
+        self.current_user = None
+        self.remaining_matches = 0  # Reset after processing
+
+    async def get_remaining_matches(self) -> int:
+        """
+        Returns the number of remaining matches for the current user being processed.
+        """
+        if self.current_user:
+            return self.remaining_matches
+        else:
+            logger.info("No user is currently being processed.")
+            return 0
 
     async def create_or_update_embed(self) -> None:
         leaderboard_string = await self.get_leaderboard()
