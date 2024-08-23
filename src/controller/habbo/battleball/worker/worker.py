@@ -54,7 +54,6 @@ class BattleballWorker:
 
         if not user_data:
             self.dmer.send_dm(discord_id, f"{self.config.abajo_icon} Failed to process user '{username}'.")
-            logger.error(f"User data not found for username '{username}'")
             return
 
         checked_match_ids = await self.db_service.get_checked_matches(user_id)
