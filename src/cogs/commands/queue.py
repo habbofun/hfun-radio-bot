@@ -23,8 +23,8 @@ class BattleQueue(commands.Cog):
                 username = entry['username']
                 discord_id = entry['discord_id']
 
-                if username == self.worker.current_user:
-                    remaining_matches = await self.worker.get_remaining_matches()
+                if username == self.battleball_worker.current_user:
+                    remaining_matches = await self.battleball_worker.get_remaining_matches()
                     queue_display.append(f"{self.config.arriba_icon} **{position}**. {username} (Added by: <@{discord_id}> - {remaining_matches} left)")
                 else:
                     queue_display.append(f"{self.config.abajo_icon} **{position}**. {username} (Added by: <@{discord_id}>)")

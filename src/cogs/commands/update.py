@@ -23,8 +23,8 @@ class BattleUpdate(commands.Cog):
                 ephemeral=True
             )
             await self.log_queue_addition(username, added_by_name, position)
-            if not self.worker.running:
-                await self.worker.start()
+            if not self.battleball_worker.running:
+                await self.battleball_worker.start()
         else:
             await self.log_queue_addition(username, added_by_name, position)
             await interaction.response.send_message(
