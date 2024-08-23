@@ -75,7 +75,7 @@ class Config:
         self.azuracast_api_url: str = self.settings.get("azuracast_api_url", "")
         self.azuracast_api_key: str = self.settings.get("azuracast_api_key", "")
 
-    def change_value(self, key, value):
+    async def change_value(self, key, value):
         """
         Changes the value of a configuration setting and saves it to the config file.
 

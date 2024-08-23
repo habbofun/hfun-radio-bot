@@ -4,6 +4,7 @@ from tabulate import tabulate
 from discord.ext import commands
 from src.helper.config import Config
 from src.helper.singleton import Singleton
+from src.views.battleball.panel import BattleballPanelView
 from src.controller.habbo.battleball.api_client.client import HabboApiClient
 from src.database.service.battleball_service import BattleballDatabaseService, Match
 
@@ -135,9 +136,9 @@ class BattleballWorker:
 
         try:
             battleball_message = await battleball_channel.fetch_message(self.config.battleball_message_id)
-            await battleball_message.edit(content=None, embed=embed)
+            await battleball_message.edit(content=None, embed=embed, view=BattleballPanelView(self.bot))
         except discord.NotFound:
-            battleball_message = await battleball_channel.send(content=None, embed=embed)
+            battleball_message = await battleball_channel.send(content=None, embed=embed, view=BattleballPanelView(self.bot))
             self.config.change_value("battleball_message_id", battleball_message.id)
         except discord.HTTPException as e:
             logger.error(f"Failed to create or update embed: {e}")

@@ -41,9 +41,8 @@ class BattleLeaderboard(commands.Cog):
             embed = await EmbedController().build_embed(embed_schema)
             battleball_message = await battleball_channel_id.send(embed=embed, view=BattleballPanelView(self.bot))
 
-            if not await self.battleball_worker.update_battleball_config_values(battleball_message.channel.id, battleball_message.id):
-                await battleball_channel_id.send("Failed to update battleball config values.", ephemeral=True)
-                return
+            await self.config.change_value("battleball_message_id", battleball_message.id)
+            await self.config.change_value("battleball_channel_id", battleball_channel_id.id)
 
             await self.battleball_worker.create_or_update_embed()
         except Exception as e:
