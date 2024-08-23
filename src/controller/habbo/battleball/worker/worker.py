@@ -101,7 +101,7 @@ class BattleballWorker:
         except discord.HTTPException as e:
             logger.error(f"Failed to send DM to user '{username}': {e}")
 
-        logger.info(f"Processed {len(new_match_ids)} matches for '{username}' in '{time.time() - start_time:.2f}' seconds")
+        logger.info(f"Processed '{len(new_match_ids)}' matches for '{username}' in '{time.time() - start_time:.2f}' seconds")
         self.current_user = None
         self.remaining_matches = 0  # Reset after processing
 
