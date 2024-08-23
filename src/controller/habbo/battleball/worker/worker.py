@@ -83,7 +83,6 @@ class BattleballWorker:
 
                 # Decrement the remaining matches count
                 self.remaining_matches -= 1
-                logger.info(f"Remaining matches for user '{username}': {self.remaining_matches}")
 
         try:
             user_that_queued = self.bot.get_user(discord_id)
