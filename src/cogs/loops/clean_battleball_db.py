@@ -8,7 +8,7 @@ class CleanupBattleballDatabaseLoop(commands.Cog):
     A class representing a loop that cleans up the battleball database.
 
     This class is a cog that contains a task loop that runs every hour to remove users
-    who are out of the top 15-20 on the scoreboard from the database.
+    who are out of the top 40 on the leaderboard from the database.
 
     Attributes:
         bot (commands.Bot): The instance of the bot.
@@ -32,20 +32,20 @@ class CleanupBattleballDatabaseLoop(commands.Cog):
         """
         A task loop that cleans up the battleball database.
 
-        This method is called every hour to remove users who are out of the top 15-20
+        This method is called every hour to remove users who are out of the top 40
         on the leaderboard from the database.
 
         Returns:
             None
         """
         leaderboard = await self.database_service.get_leaderboard()
-        if len(leaderboard) > 20:
-            # Determine the minimum score of the top 15 users
-            min_score_to_keep = leaderboard[14][1]  # Assuming the score is the second item in each tuple
-            for user in leaderboard[20:]:
-                if user[1] < min_score_to_keep:  # Check if the user's score is below the 15th user's score
+        if len(leaderboard) > 40:
+            # Determine the minimum score of the top 40 users
+            min_score_to_keep = leaderboard[39][1]  # Assuming the score is the second item in each tuple
+            for user in leaderboard[40:]:
+                if user[1] < min_score_to_keep:  # Check if the user's score is below the 40th user's score
                     await self.database_service.fulminate_user(user[0])  # Remove the user by username
-                    logger.info(f"Removed user '{user[0]}' from the database for being out of the top 15-20.")
+                    logger.info(f"Removed user '{user[0]}' from the database for being out of the top 40.")
 
     @cleanup_database.before_loop
     async def before_cleanup_database(self) -> None:
