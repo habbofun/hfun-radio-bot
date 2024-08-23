@@ -27,7 +27,8 @@ class BattleQueue(commands.Cog):
                 else:
                     queue_display.append(f"{position}. {username} (Added by: <@{discord_id}>)")
 
-            await interaction.response.send_message(f"**Current Queue:**\n{'\n'.join(queue_display)}", ephemeral=True)
+            queue_message = "\n".join(queue_display)
+            await interaction.response.send_message(f"**Current Queue:**\n{queue_message}", ephemeral=True)
         else:
             await interaction.response.send_message("The queue is currently empty.", ephemeral=True)
 
