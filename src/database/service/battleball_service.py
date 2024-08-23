@@ -155,6 +155,12 @@ class BattleballDatabaseService:
             else:
                 logger.warning(f"User '{username}' not found in the database.")
 
+    async def get_queue(self):
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute("SELECT username, discord_id FROM queue ORDER BY position") as cursor:
+                queue = [{"username": row[0], "discord_id": row[1]} for row in await cursor.fetchall()]
+        return queue
+
     async def get_leaderboard(self):
         async with aiosqlite.connect(self.db_path) as db:
             async with db.execute("""
