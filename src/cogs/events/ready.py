@@ -11,6 +11,7 @@ from discord.ext import commands
 from pystyle import Colors, Colorate, Center
 
 from src.helper.config import Config
+from src.api.battleball.api import BattleballAPI
 from src.views.battleball.panel import BattleballPanelView
 from src.controller.habbo.battleball.worker.worker import BattleballWorker
 
@@ -34,6 +35,7 @@ class OnReady(commands.Cog):
         """
         self.bot = bot
         self.config = Config()
+        self.battleball_api = BattleballAPI()
         self.battleball_worker = BattleballWorker(self)
 
     @commands.Cog.listener()
@@ -52,10 +54,13 @@ class OnReady(commands.Cog):
         )
         print(f"{centered_logo}\n{divider}\n\n")
 
-        logger.debug("Setting persistent views...")
+        logger.debug("Setting persistent views")
         self.bot.add_view(BattleballPanelView(self.bot))
 
-        logger.debug("Loading workers...")
+        logger.debug("Setting up BattleBall API")
+        await self.battleball_api.start_server()
+
+        logger.debug("Loading workers")
         if not self.battleball_worker.running:
             await self.battleball_worker.start()
 
