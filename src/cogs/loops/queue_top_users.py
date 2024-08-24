@@ -54,12 +54,7 @@ class BattleballUpdateLoop(commands.Cog):
                 username = user[0]
                 discord_id = 0  # Replace with actual Discord ID if available
 
-                # Check if the user is already in the queue to prevent duplicates
-                position = await self.database_service.add_to_queue(username, discord_id)
-                if position is not None:
-                    logger.info(f"User '{username}' added to the queue at position '{position}'")
-                else:
-                    logger.info(f"User '{username}' is already in the queue")
+                await self.database_service.add_to_queue(username, discord_id)
 
             # Start the worker if it's not running
             if not self.battleball_worker.running:
