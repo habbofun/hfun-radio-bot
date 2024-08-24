@@ -93,12 +93,12 @@ class SyncCommand(commands.Cog):
             error_message = f"❌ Failed to sync slash commands: {e}"
             logger.critical(error_message)
 
-    async def setup(bot: commands.Bot):
-        """
-        Sets up the SyncCommand cog for the bot.
+async def setup(bot: commands.Bot):
+    """
+    Sets up the SyncCommand cog for the bot.
 
-        Args:
-            bot (commands.Bot): The bot instance.
-        """
-        await bot.add_cog(SyncCommand(bot))
-        logger.info("Sync command loaded!")
+    Args:
+        bot (commands.Bot): The bot instance.
+    """
+    await bot.add_cog(SyncCommand(bot))
+    logger.info("Sync command loaded!")
