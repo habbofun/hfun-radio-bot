@@ -2,7 +2,7 @@
 This module contains the CleanupBattleballDatabaseLoop cog for the Discord bot.
 
 The CleanupBattleballDatabaseLoop cog provides functionality to clean up the battleball
-database by removing users who are out of the top 40 on the leaderboard every hour.
+database by removing users who are out of the top 45 on the leaderboard every hour.
 """
 
 from loguru import logger
@@ -17,7 +17,7 @@ class CleanupBattleballDatabaseLoop(commands.Cog):
     A class representing a loop that cleans up the battleball database.
 
     This class is a cog that contains a task loop that runs every hour to remove users
-    who are out of the top 40 on the leaderboard from the database.
+    who are out of the top 45 on the leaderboard from the database.
 
     Attributes:
         bot (commands.Bot): The instance of the bot.
@@ -46,24 +46,24 @@ class CleanupBattleballDatabaseLoop(commands.Cog):
         """
         A task loop that cleans up the battleball database.
 
-        This method is called every hour to remove users who are out of the top 40
+        This method is called every hour to remove users who are out of the top 45
         on the leaderboard from the database.
 
         Returns:
             None
         """
         leaderboard = await self.database_service.get_leaderboard()
-        if len(leaderboard) > 40:
-            # Determine the minimum score of the top 40 users
+        if len(leaderboard) > 45:
+            # Determine the minimum score of the top 45 users
             # Assuming the score is the second item in each tuple
-            min_score_to_keep = leaderboard[39][1]
-            for user in leaderboard[40:]:
-                # Check if the user's score is below the 40th user's score
+            min_score_to_keep = leaderboard[44][1]
+            for user in leaderboard[45:]:
+                # Check if the user's score is below the 45th user's score
                 if user[1] < min_score_to_keep:
                     # Remove the user by username
                     await self.database_service.fulminate_user(user[0])
                     logger.info(
-                        f"Removed user '{user[0]}' from the database for being out of the top 40."
+                        f"Removed user '{user[0]}' from the database for being out of the top 45."
                     )
 
     @cleanup_database.before_loop
