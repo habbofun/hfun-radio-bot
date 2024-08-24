@@ -54,7 +54,7 @@ class Config:
         self.abajo_icon: str = "<:abajo:1269762527374610512>"
 
         self.battleball_api_host: str = "0.0.0.0"
-        self.battleball_api_port: int = 8000
+        self.battleball_api_port: int = 2005
 
         self.rainbow_line_gif: str = "https://i.imgur.com/mnydyND.gif"
         self.app_logo: str = self.settings.get("app_logo", "")
