@@ -1,8 +1,8 @@
-import uvicorn, asyncio
+import uvicorn
+import asyncio
 from loguru import logger
+from src.helper.config import Config
 from fastapi import FastAPI, HTTPException
-
-
 from src.helper.singleton import Singleton
 from src.database.service.battleball_service import BattleballDatabaseService
 
@@ -24,6 +24,7 @@ class BattleballAPI:
         Initializes the BattleballAPI class, setting up the FastAPI app and database service.
         """
         self.app = FastAPI()
+        self.config = Config()
         self.db_service = BattleballDatabaseService()
 
         # Register API routes
@@ -33,7 +34,6 @@ class BattleballAPI:
         """
         Registers all the API routes with the FastAPI app.
         """
-
         @self.app.get("/")
         async def root():
             """
@@ -42,6 +42,7 @@ class BattleballAPI:
             Returns:
                 dict: A dictionary containing a welcome message.
             """
+            logger.info("Root endpoint accessed")
             return {"message": "Welcome to the Battleball API!"}
 
         @self.app.get("/leaderboard")
@@ -54,6 +55,7 @@ class BattleballAPI:
             """
             leaderboard = await self.db_service.get_leaderboard()
             if not leaderboard:
+                logger.warning("Leaderboard not found")
                 raise HTTPException(status_code=404, detail="Leaderboard not found")
 
             formatted_leaderboard = [
@@ -67,22 +69,30 @@ class BattleballAPI:
                 for idx, (username, score, ranked_matches, non_ranked_matches) in enumerate(leaderboard)
             ]
 
+            logger.info("Leaderboard fetched successfully")
             return formatted_leaderboard
 
-    def run(self, host="0.0.0.0", port=8000):
+    def run(self, host=Config().battleball_api_host, port=Config().battleball_api_port):
         """
-        Starts the FastAPI server using Uvicorn.
+        Starts the FastAPI server using Uvicorn with no logging output.
 
         Args:
             host (str): The host IP address to bind the server to.
             port (int): The port number to bind the server to.
         """
-        uvicorn.run(self.app, host=host, port=port)
+        # Configure Uvicorn to have no logging output
+        uvicorn.run(
+            self.app,
+            host=host,
+            port=port,
+            log_level="critical",  # Set the log level to critical to suppress most logging
+            access_log=False,  # Disable the access log
+        )
 
     async def start_server(self):
         """
         Starts the FastAPI server asynchronously, allowing it to run alongside other async tasks.
         """
-        logger.info("Starting Battleball API at '0.0.0.0':'8000'")
+        logger.info(f"Starting Battleball API at '{self.config.battleball_api_host}':'{self.config.battleball_api_port}'")
         loop = asyncio.get_event_loop()
         loop.run_in_executor(None, self.run)
