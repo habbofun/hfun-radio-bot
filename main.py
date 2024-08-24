@@ -52,30 +52,30 @@ class Bot(commands.Bot):
         """
         try:
             os.system("cls||clear")
-            logger.info("Starting bot...")
+            logger.info("Starting bot")
 
-            logger.debug("Checking for file inputs...")
+            logger.debug("Checking for file inputs")
             self.file_manager.check_input()
 
-            logger.debug("Setting up databases...")
+            logger.debug("Setting up databases")
             await DatabaseLoader().setup()
 
-            logger.debug("Loading cogs...")
+            logger.debug("Loading cogs")
             for filename in os.listdir("./src/cogs/commands"):
                 if filename.endswith(".py") and not filename.startswith("_"):
                     await self.load_extension(f"src.cogs.commands.{filename[:-3]}")
 
-            logger.debug("Loading events...")
+            logger.debug("Loading events")
             for filename in os.listdir("./src/cogs/events"):
                 if filename.endswith(".py") and not filename.startswith("_"):
                     await self.load_extension(f"src.cogs.events.{filename[:-3]}")
 
-            logger.debug("Loading loops...")
+            logger.debug("Loading loops")
             for filename in os.listdir("./src/cogs/loops"):
                 if filename.endswith(".py") and not filename.startswith("_"):
                     await self.load_extension(f"src.cogs.loops.{filename[:-3]}")
 
-            logger.debug("Starting command worker...")
+            logger.debug("Starting command worker")
             self.loop.create_task(self.command_worker())
 
             logger.info("Setup completed!")
