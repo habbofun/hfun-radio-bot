@@ -1,4 +1,6 @@
 aiosqlite
+discord.py
+fastapi
 httpx
 loguru
 pyfiglet
@@ -6,4 +8,4 @@ pystyle
 PyYAML
 pydantic
 tabulate
-discord.py
+uvicorn
