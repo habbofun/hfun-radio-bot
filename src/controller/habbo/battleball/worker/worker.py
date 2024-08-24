@@ -21,36 +21,23 @@ class BattleballWorker:
         self.dmer = DiscordDmer(bot)
         self.running = False
         self.current_user = None
-        self.remaining_matches = 0
-        self.task = None  # Task to manage the worker's loop
+        self.remaining_matches = 0  # Track the number of remaining matches
 
     async def start(self):
-        if not self.running:
-            self.running = True
-            self.task = asyncio.create_task(self.run())  # Create a new task for the run loop
-            logger.info("Battleball worker started.")
-
-    async def run(self):
-        while self.running:
+        self.running = True
+        while True:
             queue_item = await self.db_service.get_next_in_queue()
-            if queue_item:
-                await self.process_user(queue_item)
-                await self.db_service.remove_from_queue(queue_item["id"])
-                await asyncio.sleep(1)  # Throttle to avoid API rate limits
-            else:
-                # No items in the queue, sleep for a while before checking again
-                await asyncio.sleep(10)
+            if not queue_item:
+                break
+
+            await self.process_user(queue_item)
+            await self.db_service.remove_from_queue(queue_item["id"])
+            await asyncio.sleep(1)  # Throttle to avoid API rate limits
+
+        self.running = False
 
     async def stop(self):
-        if self.running:
-            self.running = False
-            if self.task:
-                self.task.cancel()
-                try:
-                    await self.task
-                except asyncio.CancelledError:
-                    logger.info("Battleball worker stopped.")
-            self.task = None
+        self.running = False
 
     async def process_user(self, queue_item):
         start_time = time.time()
@@ -69,7 +56,7 @@ class BattleballWorker:
         user_data = await self.api_client.fetch_user_data(username)
 
         if not user_data:
-            await self.dmer.send_dm(
+            self.dmer.send_dm(
                 discord_id, f"{self.config.abajo_icon} Failed to process user '{username}'.")
             return
 
@@ -87,7 +74,7 @@ class BattleballWorker:
             f"Processing '{self.remaining_matches}' new matches for '{username}'")
 
         for i in range(0, len(new_match_ids), 3):
-            batch = new_match_ids[i:i + 3]
+            batch = new_match_ids[i:i+3]
             matches = await self.api_client.fetch_match_data_batch(batch)
 
             for match_data in matches:
@@ -119,7 +106,7 @@ class BattleballWorker:
                 self.remaining_matches -= 1
 
         try:
-            await self.dmer.send_dm(
+            self.dmer.send_dm(
                 discord_id, f"{self.config.arriba_icon} Job for user `{username}` has been completed.")
         except discord.HTTPException as e:
             logger.error(f"Failed to send DM to user '{username}': {e}")
@@ -130,6 +117,9 @@ class BattleballWorker:
         self.remaining_matches = 0  # Reset after processing
 
     async def get_remaining_matches(self) -> int:
+        """
+        Returns the number of remaining matches for the current user being processed.
+        """
         if self.current_user:
             return self.remaining_matches
         else:
@@ -139,14 +129,16 @@ class BattleballWorker:
     async def create_or_update_embed(self) -> None:
         leaderboard_string = await self.get_leaderboard()
 
+        # Ensure the leaderboard string is within Discord's 4096-character limit for the description.
         if len(leaderboard_string) > 4096:
+            # Truncate and add ellipsis
             leaderboard_string = leaderboard_string[:4092] + "..."
 
         embed = discord.Embed(
             title="BattleBall Leaderboard",
             description=f"```{leaderboard_string}```",
             color=0xF4D701,
-            timestamp=discord.utils.utcnow()
+            timestamp=discord.utils.utcnow()  # Set the current time as the timestamp
         )
 
         embed.set_footer(
