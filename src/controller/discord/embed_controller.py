@@ -5,6 +5,7 @@ from src.helper.config import Config
 from src.helper.singleton import Singleton
 from src.controller.discord.schema.embed_schema import EmbedSchema
 
+
 @Singleton
 class EmbedController:
     """
@@ -13,7 +14,7 @@ class EmbedController:
 
     def __init__(self):
         self.config = Config()
-    
+
     async def build_embed(self, embed_schema: EmbedSchema) -> Embed:
         """
         Builds a Discord embed based on the provided embed schema.
@@ -59,7 +60,8 @@ class EmbedController:
         image_url = schema.get('image_url', '')
         thumbnail_url = schema.get('thumbnail_url', self.config.app_logo)
 
-        embed.set_author(name=author_name, icon_url=author_icon_url, url=author_url)
+        embed.set_author(name=author_name,
+                         icon_url=author_icon_url, url=author_url)
         embed.set_footer(text=footer_text, icon_url=footer_icon_url)
         embed.set_thumbnail(url=thumbnail_url)
         embed.set_image(url=image_url)

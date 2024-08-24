@@ -1,7 +1,15 @@
+"""
+This module contains the SyncCommand cog for the Discord bot.
+
+The SyncCommand cog provides functionality for syncing slash commands globally
+or in a specific guild.
+"""
+
 import discord
 from loguru import logger
 from discord.ext import commands
 from src.helper.config import Config
+
 
 class SyncCommand(commands.Cog):
     """
@@ -11,6 +19,12 @@ class SyncCommand(commands.Cog):
     """
 
     def __init__(self, bot: commands.Bot):
+        """
+        Initializes the SyncCommand cog with a bot instance.
+
+        Args:
+            bot (commands.Bot): The bot instance.
+        """
         self.bot = bot
         self.config = Config()
 
@@ -35,7 +49,9 @@ class SyncCommand(commands.Cog):
         """
         await self.bot.command_queue.put((ctx, self.process_sync_command(ctx, guild)))
 
-    async def process_sync_command(self, ctx: commands.Context, guild: discord.Guild = None):
+    async def process_sync_command(
+        self, ctx: commands.Context, guild: discord.Guild = None
+    ):
         """
         Processes the sync command.
 
@@ -48,9 +64,11 @@ class SyncCommand(commands.Cog):
         except discord.errors.NotFound:
             logger.warning("Tried to delete a message that was not found.")
         except discord.errors.Forbidden:
-            logger.warning("Bot does not have permission to delete the message.")
+            logger.warning(
+                "Bot does not have permission to delete the message.")
         except Exception as e:
-            logger.warning(f"Unexpected error while trying to delete the message: {e}")
+            logger.warning(
+                f"Unexpected error while trying to delete the message: {e}")
 
         try:
             if guild is None:
@@ -60,13 +78,13 @@ class SyncCommand(commands.Cog):
                 await self.bot.tree.sync(guild=guild)
                 success_message = f"✅ Successfully synced slash commands in {guild.name}!"
             msg = await ctx.send(success_message)
-            
             logger.info("Slash commands were synced by an admin.")
-
             await msg.delete(delay=5)
 
         except discord.errors.Forbidden:
-            error_message = "❌ Failed to sync slash commands: Bot does not have permission to send messages."
+            error_message = (
+                "❌ Failed to sync slash commands: Bot does not have permission to send messages."
+            )
             logger.critical(error_message)
         except discord.errors.HTTPException as e:
             error_message = f"❌ Failed to sync slash commands: {e}"
@@ -75,6 +93,12 @@ class SyncCommand(commands.Cog):
             error_message = f"❌ Failed to sync slash commands: {e}"
             logger.critical(error_message)
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(SyncCommand(bot))
-    logger.info("Sync command loaded!")
+    async def setup(bot: commands.Bot):
+        """
+        Sets up the SyncCommand cog for the bot.
+
+        Args:
+            bot (commands.Bot): The bot instance.
+        """
+        await bot.add_cog(SyncCommand(bot))
+        logger.info("Sync command loaded!")

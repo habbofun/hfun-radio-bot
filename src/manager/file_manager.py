@@ -30,6 +30,7 @@ azuracast_api_url: # String, URL to the Azuracast API
 azuracast_api_key: # String, API key of the Azuracast API
 """
 
+
 @Singleton
 class FileManager:
     """
@@ -50,7 +51,8 @@ class FileManager:
         if not os.path.isfile("config.yaml"):
             logger.info("Config file not found, creating one...")
             open("config.yaml", "w+").write(defaultConfig)
-            logger.info("Successfully created config.yml, please fill it out and try again.")
+            logger.info(
+                "Successfully created config.yml, please fill it out and try again.")
             exit()
 
         if not os.path.exists("src/database"):

@@ -1,12 +1,26 @@
-import os, discord, asyncio
-from loguru import logger
+"""
+Main module for the Discord bot.
+
+This module contains the Bot class, which extends the `commands.Bot` class from the discord.ext library.
+"""
+
+import os
+import sys
+import asyncio
 from traceback import format_exc
+
+import discord
 from discord.ext import commands
+
+from loguru import logger
+
 from src.helper.config import Config
 from src.database.loader import DatabaseLoader
 from src.manager.file_manager import FileManager
 
+# Configure logger to write to a specified file
 logger.add(Config().log_file, mode="w+")
+
 
 class Bot(commands.Bot):
     """
@@ -29,7 +43,8 @@ class Bot(commands.Bot):
     def __init__(self) -> None:
         self.file_manager = FileManager()
         self.command_queue = asyncio.Queue()
-        super().__init__(command_prefix=Config().bot_prefix, help_command=None, intents=discord.Intents.all())
+        super().__init__(command_prefix=Config().bot_prefix,
+                         help_command=None, intents=discord.Intents.all())
 
     async def setup_hook(self) -> None:
         """
@@ -66,7 +81,7 @@ class Bot(commands.Bot):
             logger.info("Setup completed!")
         except Exception:
             logger.critical(f"Error setting up bot: {format_exc()}")
-            exit()
+            sys.exit()
 
     async def command_worker(self):
         """
@@ -90,7 +105,10 @@ class Bot(commands.Bot):
             error: The error that occurred.
         """
         logger.critical(f"Failed to respond to interaction: {error}")
-        await self.send_followup_error_message(interaction, "An error occurred while executing your command. Please notify an Admin.")
+        await self.send_followup_error_message(
+            interaction,
+            "An error occurred while executing your command. Please notify an Admin."
+        )
 
     async def handle_generic_error(self, interaction, error):
         """
@@ -101,7 +119,10 @@ class Bot(commands.Bot):
             error: The error that occurred.
         """
         logger.critical(f"Unexpected error: {error}")
-        await self.send_followup_error_message(interaction, "An error occurred while executing your command. Please notify an Admin.")
+        await self.send_followup_error_message(
+            interaction,
+            "An error occurred while executing your command. Please notify an Admin."
+        )
 
     async def send_followup_error_message(self, interaction, message):
         """
@@ -115,7 +136,8 @@ class Bot(commands.Bot):
             try:
                 await interaction.followup.send(message, ephemeral=True)
             except Exception as followup_error:
-                logger.critical(f"Failed to send follow-up message: {followup_error}")
+                logger.critical(
+                    f"Failed to send follow-up message: {followup_error}")
 
     async def close(self) -> None:
         """
@@ -123,13 +145,14 @@ class Bot(commands.Bot):
         """
         await super().close()
 
+
 if __name__ == "__main__":
     try:
         bot = Bot()
         bot.run(Config().bot_token)
     except KeyboardInterrupt:
         logger.critical("Goodbye!")
-        exit()
+        sys.exit()
     except Exception:
         logger.critical(f"Error running bot: {format_exc()}")
-        exit()
+        sys.exit()

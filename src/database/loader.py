@@ -3,6 +3,7 @@ from loguru import logger
 from src.helper.singleton import Singleton
 from src.database.service.battleball_service import BattleballDatabaseService
 
+
 @Singleton
 class DatabaseLoader:
     """

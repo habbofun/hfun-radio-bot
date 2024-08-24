@@ -4,6 +4,7 @@ from discord.ui import View
 from discord.ext import commands
 from src.helper.singleton import Singleton
 
+
 @Singleton
 class DiscordDmer:
     def __init__(self, bot: commands.Bot):

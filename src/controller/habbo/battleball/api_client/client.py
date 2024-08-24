@@ -7,6 +7,7 @@ from loguru import logger
 from src.helper.singleton import Singleton
 from src.controller.habbo.battleball.api_client.models import User, Match
 
+
 @Singleton
 class HabboApiClient:
     BASE_URL = "https://origins.habbo.es/api/public"
@@ -41,7 +42,8 @@ class HabboApiClient:
                     else:
                         raise e
         except Exception as e:
-            logger.error(f"Failed to fetch user data for username '{username}': {e}")
+            logger.error(
+                f"Failed to fetch user data for username '{username}': {e}")
             return None
 
     async def fetch_match_ids(self, bouncerPlayerId: str, offset: int = 0, limit: int = 100) -> List[str]:
@@ -75,7 +77,8 @@ class HabboApiClient:
         with ThreadPoolExecutor(max_workers=self.MAX_WORKERS) as executor:
             loop = asyncio.get_event_loop()
             tasks = [
-                loop.run_in_executor(executor, self._fetch_match_data_thread, match_id)
+                loop.run_in_executor(
+                    executor, self._fetch_match_data_thread, match_id)
                 for match_id in match_ids
             ]
             results = await asyncio.gather(*tasks)
@@ -89,14 +92,17 @@ class HabboApiClient:
             try:
                 proxy = self.get_random_proxy()
                 with httpx.Client(proxies=proxy, timeout=self.TIMEOUT) as client:
-                    response = client.get(f"{self.BASE_URL}/matches/v1/{match_id}")
+                    response = client.get(
+                        f"{self.BASE_URL}/matches/v1/{match_id}")
                     response.raise_for_status()
                     data = response.json()
                     return Match(**data)
             except (httpx.RequestError, httpx.HTTPStatusError) as e:
                 if attempt < self.MAX_ATTEMPTS - 1:
-                    logger.warning(f"Retry {attempt + 1}/{self.MAX_ATTEMPTS} for match ID '{match_id}'")
+                    logger.warning(
+                        f"Retry {attempt + 1}/{self.MAX_ATTEMPTS} for match ID '{match_id}'")
                     continue
                 else:
-                    logger.error(f"Failed to fetch match data for ID '{match_id}': {e}")
+                    logger.error(
+                        f"Failed to fetch match data for ID '{match_id}': {e}")
                     return None

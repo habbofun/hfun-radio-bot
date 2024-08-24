@@ -1,8 +1,10 @@
-import os, httpx
+import os
+import httpx
 from io import BytesIO
 from loguru import logger
 from src.helper.singleton import Singleton
 from PIL import Image, ImageDraw, ImageFont
+
 
 @Singleton
 class HabboController:
@@ -17,9 +19,12 @@ class HabboController:
         self._initialized = True
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        self._output_dir = os.path.abspath(os.path.join(base_dir, "../../controller/habbo/temp"))
-        self._pixel_font_path = os.path.abspath(os.path.join(base_dir, "../../assets/Volter.ttf"))
-        self._base_background_path = os.path.abspath(os.path.join(base_dir, "../../assets/habbo_consola_small.png"))
+        self._output_dir = os.path.abspath(
+            os.path.join(base_dir, "../../controller/habbo/temp"))
+        self._pixel_font_path = os.path.abspath(
+            os.path.join(base_dir, "../../assets/Volter.ttf"))
+        self._base_background_path = os.path.abspath(
+            os.path.join(base_dir, "../../assets/habbo_consola_small.png"))
 
     async def get_user_info(self, username):
         """Get user information from the Habbo API.
@@ -103,7 +108,8 @@ class HabboController:
             border_color (tuple): The RGB color tuple for the border.
         """
         for offset in [(1, 1), (-1, -1), (1, -1), (-1, 1), (0, 1), (1, 0), (0, -1), (-1, 0)]:
-            draw.text((x + offset[0], y + offset[1]), text, font=font, fill=border_color)
+            draw.text((x + offset[0], y + offset[1]),
+                      text, font=font, fill=border_color)
         draw.text((x, y), text, font=font, fill=text_color)
 
     async def create_habbo_image(self, username):
@@ -128,7 +134,8 @@ class HabboController:
             return
 
         if not os.path.exists(self._base_background_path):
-            logger.error(f"Background image not found: {self._base_background_path}")
+            logger.error(
+                f"Background image not found: {self._base_background_path}")
             return None
 
         background = Image.open(self._base_background_path).convert("RGBA")
@@ -141,7 +148,7 @@ class HabboController:
             font = ImageFont.truetype(font_path, 9)
 
         avatar_image = avatar_image.resize((64, 110), Image.LANCZOS)
-        
+
         temp_image = Image.new("RGBA", background.size)
         temp_image.paste(avatar_image, (25, 65), avatar_image)
         combined_image = Image.alpha_composite(background, temp_image)
@@ -151,12 +158,14 @@ class HabboController:
         border_color = (0, 0, 0)
         online_color = (0, 255, 0)
         offline_color = (255, 0, 0)
-        
+
         last_access = user_info['lastAccessTime']
         member_since = user_info['memberSince']
 
-        last_access_formatted = last_access[8:10] + '-' + last_access[5:7] + '-' + last_access[:4]
-        member_since_formatted = member_since[8:10] + '-' + member_since[5:7] + '-' + member_since[:4]
+        last_access_formatted = last_access[8:10] + \
+            '-' + last_access[5:7] + '-' + last_access[:4]
+        member_since_formatted = member_since[8:10] + \
+            '-' + member_since[5:7] + '-' + member_since[:4]
 
         y_offset = 50
         max_width = 100
@@ -196,7 +205,8 @@ class HabboController:
         y_offset += 20
 
         os.makedirs(self._output_dir, exist_ok=True)
-        output_file = os.path.join(self._output_dir, f"{username}_habbo_console.png")
+        output_file = os.path.join(
+            self._output_dir, f"{username}_habbo_console.png")
 
         combined_image.save(output_file)
         return output_file
@@ -207,7 +217,8 @@ class HabboController:
         Args:
             username (str): The username of the user.
         """
-        file_path = os.path.join(self._output_dir, f"{username}_habbo_console.png")
+        file_path = os.path.join(
+            self._output_dir, f"{username}_habbo_console.png")
 
         try:
             if os.path.exists(file_path):

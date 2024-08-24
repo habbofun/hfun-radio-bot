@@ -1,10 +1,12 @@
 from pydantic import BaseModel
 from typing import List
 
+
 class User(BaseModel):
     uniqueId: str
     name: str
     bouncerPlayerId: str
+
 
 class MatchParticipant(BaseModel):
     gamePlayerId: str
@@ -21,9 +23,11 @@ class MatchParticipant(BaseModel):
     tilesLocked: int
     tilesColouredForOpponents: int
 
+
 class MatchMetadata(BaseModel):
     matchId: str
     participantPlayerIds: List[str]
+
 
 class MatchInfo(BaseModel):
     gameCreation: int
@@ -33,6 +37,7 @@ class MatchInfo(BaseModel):
     mapId: int
     ranked: bool
     participants: List[MatchParticipant]
+
 
 class Match(BaseModel):
     metadata: MatchMetadata

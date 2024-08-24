@@ -1,4 +1,6 @@
-import time, discord, asyncio
+import time
+import discord
+import asyncio
 from loguru import logger
 from tabulate import tabulate
 from discord.ext import commands
@@ -7,6 +9,7 @@ from src.helper.dmer import DiscordDmer
 from src.helper.singleton import Singleton
 from src.controller.habbo.battleball.api_client.client import HabboApiClient
 from src.database.service.battleball_service import BattleballDatabaseService, Match
+
 
 @Singleton
 class BattleballWorker:
@@ -53,7 +56,8 @@ class BattleballWorker:
         user_data = await self.api_client.fetch_user_data(username)
 
         if not user_data:
-            self.dmer.send_dm(discord_id, f"{self.config.abajo_icon} Failed to process user '{username}'.")
+            self.dmer.send_dm(
+                discord_id, f"{self.config.abajo_icon} Failed to process user '{username}'.")
             return
 
         checked_match_ids = await self.db_service.get_checked_matches(user_id)
@@ -61,10 +65,13 @@ class BattleballWorker:
         bouncer_player_id = user_data.bouncerPlayerId
         match_ids = await self.api_client.fetch_match_ids(bouncer_player_id)
 
-        new_match_ids = [match_id for match_id in match_ids if match_id not in checked_match_ids]
-        self.remaining_matches = len(new_match_ids)  # Set the initial count of remaining matches
+        new_match_ids = [
+            match_id for match_id in match_ids if match_id not in checked_match_ids]
+        # Set the initial count of remaining matches
+        self.remaining_matches = len(new_match_ids)
 
-        logger.info(f"Processing '{self.remaining_matches}' new matches for '{username}'")
+        logger.info(
+            f"Processing '{self.remaining_matches}' new matches for '{username}'")
 
         for i in range(0, len(new_match_ids), 3):
             batch = new_match_ids[i:i+3]
@@ -72,13 +79,15 @@ class BattleballWorker:
 
             for match_data in matches:
                 match_id = match_data.metadata.matchId
-                participant = next((p for p in match_data.info.participants if p.gamePlayerId == bouncer_player_id), None)
+                participant = next(
+                    (p for p in match_data.info.participants if p.gamePlayerId == bouncer_player_id), None)
 
                 if participant:
                     score = participant.gameScore
                     is_ranked = match_data.info.ranked
                     remaining_matches = await self.get_remaining_matches()
-                    logger.info(f"Processing match '{match_id}' ({remaining_matches}) for user '{username}' with score '{score}'")
+                    logger.info(
+                        f"Processing match '{match_id}' ({remaining_matches}) for user '{username}' with score '{score}'")
                 else:
                     score = 0
                     is_ranked = False
@@ -97,11 +106,13 @@ class BattleballWorker:
                 self.remaining_matches -= 1
 
         try:
-            self.dmer.send_dm(discord_id, f"{self.config.arriba_icon} Job for user `{username}` has been completed.")
+            self.dmer.send_dm(
+                discord_id, f"{self.config.arriba_icon} Job for user `{username}` has been completed.")
         except discord.HTTPException as e:
             logger.error(f"Failed to send DM to user '{username}': {e}")
 
-        logger.info(f"Processed '{len(new_match_ids)}' matches for '{username}' in '{time.time() - start_time:.2f}' seconds")
+        logger.info(
+            f"Processed '{len(new_match_ids)}' matches for '{username}' in '{time.time() - start_time:.2f}' seconds")
         self.current_user = None
         self.remaining_matches = 0  # Reset after processing
 
@@ -120,7 +131,8 @@ class BattleballWorker:
 
         # Ensure the leaderboard string is within Discord's 4096-character limit for the description.
         if len(leaderboard_string) > 4096:
-            leaderboard_string = leaderboard_string[:4092] + "..."  # Truncate and add ellipsis
+            # Truncate and add ellipsis
+            leaderboard_string = leaderboard_string[:4092] + "..."
 
         embed = discord.Embed(
             title="BattleBall Leaderboard",
@@ -133,7 +145,8 @@ class BattleballWorker:
             text="It's probably not updated in real-time, but it should give you a good idea of who's on top!"
         )
 
-        battleball_channel = self.bot.get_channel(self.config.battleball_channel_id)
+        battleball_channel = self.bot.get_channel(
+            self.config.battleball_channel_id)
 
         if not battleball_channel:
             logger.critical("Battleball channel not found")
@@ -144,7 +157,8 @@ class BattleballWorker:
             await battleball_message.edit(content=None, embed=embed)
         except discord.NotFound:
             battleball_message = await battleball_channel.send(content=None, embed=embed)
-            self.config.change_value("battleball_message_id", battleball_message.id)
+            self.config.change_value(
+                "battleball_message_id", battleball_message.id)
         except discord.HTTPException as e:
             logger.error(f"Failed to create or update embed: {e}")
 
@@ -169,6 +183,7 @@ class BattleballWorker:
 
         return tabulate(
             formatted_leaderboard,
-            headers=["Position", "Username", "Score", "Ranked Matches", "Non-Ranked Matches"],
+            headers=["Position", "Username", "Score",
+                     "Ranked Matches", "Non-Ranked Matches"],
             tablefmt="pretty"
         )

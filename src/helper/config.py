@@ -4,6 +4,7 @@ from loguru import logger
 from yaml import SafeLoader
 from src.helper.singleton import Singleton
 
+
 @Singleton
 class Config:
     """
@@ -63,20 +64,29 @@ class Config:
         self.bot_prefix: str = self.settings.get("bot_prefix", "!")
         self.bot_token: str = self.settings.get("bot_token", "")
 
-        self.panel_channel_id: int = int(self.settings.get("panel_channel_id", 0))
-        self.panel_message_id: int = int(self.settings.get("panel_message_id", 0))
+        self.panel_channel_id: int = int(
+            self.settings.get("panel_channel_id", 0))
+        self.panel_message_id: int = int(
+            self.settings.get("panel_message_id", 0))
 
-        self.battleball_channel_id: int = int(self.settings.get("battleball_channel_id", 0))
-        self.battleball_message_id: int = int(self.settings.get("battleball_message_id", 0))
+        self.battleball_channel_id: int = int(
+            self.settings.get("battleball_channel_id", 0))
+        self.battleball_message_id: int = int(
+            self.settings.get("battleball_message_id", 0))
 
         self.logs_channel: int = int(self.settings.get("logs_channel", 0))
-        self.dev_guild_id: discord.Object = discord.Object(int(self.settings.get("dev_guild_id", 0)))
+        self.dev_guild_id: discord.Object = discord.Object(
+            int(self.settings.get("dev_guild_id", 0)))
 
-        self.azuracast_station_url: str = self.settings.get("azuracast_station_url", "")
-        self.azuracast_station_name: str = self.settings.get("azuracast_station_name", "")
+        self.azuracast_station_url: str = self.settings.get(
+            "azuracast_station_url", "")
+        self.azuracast_station_name: str = self.settings.get(
+            "azuracast_station_name", "")
 
-        self.azuracast_api_url: str = self.settings.get("azuracast_api_url", "")
-        self.azuracast_api_key: str = self.settings.get("azuracast_api_key", "")
+        self.azuracast_api_url: str = self.settings.get(
+            "azuracast_api_url", "")
+        self.azuracast_api_key: str = self.settings.get(
+            "azuracast_api_key", "")
 
     async def change_value(self, key, value):
         """
@@ -95,9 +105,11 @@ class Config:
             config[key] = value
             with open(self.CONFIG_FILE_PATH, "w") as file:
                 yaml.dump(config, file)
-            logger.info(f"Changed value in {self.CONFIG_FILE_PATH}: {key} -> {value}, the file was rewritten.")
+            logger.info(
+                f"Changed value in {self.CONFIG_FILE_PATH}: {key} -> {value}, the file was rewritten.")
             self.load_config()
             return True
         except Exception as e:
-            logger.critical(f"Failed to change value in {self.CONFIG_FILE_PATH}: {e}")
+            logger.critical(
+                f"Failed to change value in {self.CONFIG_FILE_PATH}: {e}")
             return False

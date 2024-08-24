@@ -4,6 +4,7 @@ from src.helper.config import Config
 from src.helper.singleton import Singleton
 from src.controller.radio.radio_controller import RadioController
 
+
 @Singleton
 class BotStatus:
     """

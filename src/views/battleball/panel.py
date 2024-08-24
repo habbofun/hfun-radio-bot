@@ -6,6 +6,7 @@ from src.controller.discord.embed_controller import EmbedController
 from src.controller.habbo.battleball.worker.worker import BattleballWorker
 from src.database.service.battleball_service import BattleballDatabaseService
 
+
 class BattleballPanelView(discord.ui.View):
     """
     Represents the panel view for the Discord bot.
@@ -60,9 +61,11 @@ class BattleballPanelView(discord.ui.View):
 
             if username == self.battleball_worker.current_user:
                 remaining_matches = await self.battleball_worker.get_remaining_matches()
-                queue_display.append(f"{self.config.arriba_icon} **{position}**. {username} (Added by: <@{discord_id}> - {remaining_matches} left)")
+                queue_display.append(
+                    f"{self.config.arriba_icon} **{position}**. {username} (Added by: <@{discord_id}> - {remaining_matches} left)")
             else:
-                queue_display.append(f"{self.config.abajo_icon} **{position}**. {username} (Added by: <@{discord_id}>)")
+                queue_display.append(
+                    f"{self.config.abajo_icon} **{position}**. {username} (Added by: <@{discord_id}>)")
 
         queue_message = "\n".join(queue_display)
         await interaction.response.send_message(f"**Current Queue:**\n{queue_message}", ephemeral=True)

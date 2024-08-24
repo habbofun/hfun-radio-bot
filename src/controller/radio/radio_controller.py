@@ -1,4 +1,5 @@
-import httpx, discord
+import httpx
+import discord
 from typing import Tuple, Optional
 from loguru import logger
 from discord.ext import commands
@@ -6,6 +7,7 @@ from src.helper.config import Config
 from src.helper.singleton import Singleton
 from src.controller.discord.schema.embed_schema import EmbedSchema
 from src.controller.discord.embed_controller import EmbedController
+
 
 @Singleton
 class RadioController:
@@ -26,7 +28,7 @@ class RadioController:
         """
         if hasattr(self, '_initialized') and self._initialized:
             return
-        
+
         self.bot = bot
         self.config = Config()
         self.client = httpx.AsyncClient(timeout=None)
@@ -37,7 +39,7 @@ class RadioController:
 
         self._initialized = True
 
-    async def get_now_playing(self, station_id: str) ->  Tuple[str, str]:
+    async def get_now_playing(self, station_id: str) -> Tuple[str, str]:
         """
         Retrieves the currently playing song and the current streamer for a given station.
 
@@ -52,9 +54,11 @@ class RadioController:
             response = await self.client.get(url, headers=self.headers)
             response.raise_for_status()
             data = response.json()
-            
-            now_playing = data.get("now_playing", {}).get("song", {}).get("title", self.ERROR_MESSAGE)
-            current_streamer = data.get("live", {}).get("streamer_name", self.AUTODJ_OR_ERROR)
+
+            now_playing = data.get("now_playing", {}).get(
+                "song", {}).get("title", self.ERROR_MESSAGE)
+            current_streamer = data.get("live", {}).get(
+                "streamer_name", self.AUTODJ_OR_ERROR)
 
             if current_streamer == "":
                 current_streamer = self.AUTODJ_OR_ERROR
@@ -79,7 +83,7 @@ class RadioController:
             response = await self.client.get(url, headers=self.headers)
             response.raise_for_status()
             data = response.json()
-            
+
             if isinstance(data, list):
                 return len(data)
             else:
@@ -106,7 +110,8 @@ class RadioController:
             data = response.json()
 
             if isinstance(data, list):
-                song_titles = "\n".join([f"{song.get('song', {}).get('title', 'Unknown')}" for song in data[:5] if 'song' in song])
+                song_titles = "\n".join(
+                    [f"{song.get('song', {}).get('title', 'Unknown')}" for song in data[:5] if 'song' in song])
                 return song_titles if song_titles else self.ERROR_MESSAGE
             else:
                 logger.error(self.UNEXPECTED_RESPONSE_FORMAT)
@@ -132,7 +137,8 @@ class RadioController:
             data = response.json()
 
             if isinstance(data, list):
-                song_titles = "\n".join([f"{song.get('song', {}).get('title', 'Unknown')}" for song in data[:5] if 'song' in song])
+                song_titles = "\n".join(
+                    [f"{song.get('song', {}).get('title', 'Unknown')}" for song in data[:5] if 'song' in song])
                 return song_titles if song_titles else None
             else:
                 logger.error(self.UNEXPECTED_RESPONSE_FORMAT)

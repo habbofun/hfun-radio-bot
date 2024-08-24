@@ -1,7 +1,16 @@
+"""
+This module contains the UpdateInfoPanelLoop cog for the Discord bot.
+
+The UpdateInfoPanelLoop cog provides functionality to update the information panel
+periodically by calling the `create_or_update_embed` method of the `RadioController` class.
+"""
+
 from loguru import logger
-from src.helper.config import Config
 from discord.ext import commands, tasks
+
+from src.helper.config import Config
 from src.controller.radio.radio_controller import RadioController
+
 
 class UpdateInfoPanelLoop(commands.Cog):
     """
@@ -17,6 +26,12 @@ class UpdateInfoPanelLoop(commands.Cog):
     """
 
     def __init__(self, bot: commands.Bot) -> None:
+        """
+        Initializes the UpdateInfoPanelLoop cog with a bot instance.
+
+        Args:
+            bot (commands.Bot): The bot instance.
+        """
         self.bot = bot
         self.config = Config()
         self.radio_controller = RadioController(bot)
@@ -28,7 +43,8 @@ class UpdateInfoPanelLoop(commands.Cog):
         A coroutine that updates the information panel.
 
         This coroutine is called periodically every 30 seconds by the `update_info_panel` task.
-        It calls the `create_or_update_embed` method of the `RadioController` class to update the information panel.
+        It calls the `create_or_update_embed` method of the `RadioController` class to update
+        the information panel.
         """
         await self.radio_controller.create_or_update_embed()
 
@@ -41,6 +57,13 @@ class UpdateInfoPanelLoop(commands.Cog):
         """
         await self.bot.wait_until_ready()
 
+
 async def setup(bot: commands.Bot) -> None:
+    """
+    Sets up the UpdateInfoPanelLoop cog for the bot.
+
+    Args:
+        bot (commands.Bot): The bot instance.
+    """
     await bot.add_cog(UpdateInfoPanelLoop(bot))
     logger.info("UpdateInfoPanel loop loaded!")
