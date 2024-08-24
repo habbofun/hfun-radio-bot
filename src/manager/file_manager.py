@@ -49,7 +49,7 @@ class FileManager:
         If not, creates them.
         """
         if not os.path.isfile("config.yaml"):
-            logger.info("Config file not found, creating one...")
+            logger.info("Config file not found, creating one")
             open("config.yaml", "w+").write(defaultConfig)
             logger.info(
                 "Successfully created config.yml, please fill it out and try again.")

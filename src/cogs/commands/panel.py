@@ -67,7 +67,7 @@ class InfoPanel(commands.Cog):
             panel_channel_id (discord.TextChannel): The channel to send the panel to.
         """
         try:
-            panel_message = await panel_channel_id.send("Loading information panel...")
+            panel_message = await panel_channel_id.send("Loading information panel")
 
             if not await self.radio_controller.update_panel_config_values(
                 panel_channel_id.id, panel_message.id
