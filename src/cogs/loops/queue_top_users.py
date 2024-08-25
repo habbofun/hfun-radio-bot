@@ -1,5 +1,6 @@
 from discord.ext import commands, tasks
 from loguru import logger
+import time
 
 from src.database.service.battleball_service import BattleballDatabaseService
 from src.controller.habbo.battleball.worker.worker import BattleballWorker
@@ -15,6 +16,7 @@ class BattleballUpdateLoop(commands.Cog):
         bot (commands.Bot): The instance of the bot.
         database_service (BattleballDatabaseService): The database service for battleball.
         battleball_worker (BattleballWorker): The worker for managing BattleBall updates.
+        last_run_time (float): The timestamp of the last time the queue_top_users task was run.
 
     Methods:
         queue_top_users: The task loop that queues the top 45 users in the battleball database for updates.
@@ -31,6 +33,7 @@ class BattleballUpdateLoop(commands.Cog):
         self.bot = bot
         self.database_service = BattleballDatabaseService()
         self.battleball_worker = BattleballWorker(bot)
+        self.last_run_time = 0
         self.queue_top_users.start()
 
     @tasks.loop(minutes=10)
@@ -44,6 +47,7 @@ class BattleballUpdateLoop(commands.Cog):
         Returns:
             None
         """
+        self.last_run_time = time.time()
         leaderboard = await self.database_service.get_leaderboard()
 
         # Only process if there are users to queue
