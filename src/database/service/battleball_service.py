@@ -115,9 +115,13 @@ class BattleballDatabaseService:
                         f"User '{username}' is already in the queue at position '{row[0]}'")
                     return row[0]
 
-            cursor = await db.execute("SELECT MAX(position) FROM queue")
-            max_position = await cursor.fetchone()
-            position = (max_position[0] or 0) + 1
+            # Find the next available position
+            async with db.execute("SELECT position FROM queue ORDER BY position") as cursor:
+                existing_positions = set(row[0] for row in await cursor.fetchall())
+            
+            position = 1
+            while position in existing_positions:
+                position += 1
 
             await db.execute("""
                 INSERT INTO queue (username, discord_id, position)
@@ -128,14 +132,38 @@ class BattleballDatabaseService:
                 f"User '{username}' added to the queue at position '{position}'.")
             return position
 
-    async def get_next_in_queue(self) -> Optional[dict]:
+    async def get_queue(self, limit: int = 0, offset: int = 0, include_discord_id: bool = True):
+        async with aiosqlite.connect(self.db_path) as db:
+            query = """
+                SELECT username, discord_id, position
+                FROM queue
+                ORDER BY position
+            """
+            if limit > 0:
+                query += f" LIMIT {limit}"
+            if offset > 0:
+                query += f" OFFSET {offset}"
+            
+            async with db.execute(query) as cursor:
+                if include_discord_id:
+                    queue = [{"username": row[0], "discord_id": row[1], "position": row[2]} for row in await cursor.fetchall()]
+                else:
+                    queue = [{"username": row[0], "position": row[2]} for row in await cursor.fetchall()]
+        return queue
+
+    async def get_next_in_queue(self, include_discord_id: bool = True) -> Optional[dict]:
         async with aiosqlite.connect(self.db_path) as db:
             async with db.execute("SELECT * FROM queue ORDER BY position LIMIT 1") as cursor:
                 row = await cursor.fetchone()
                 if row:
-                    logger.debug(
-                        f"Next in queue: ID '{row[0]}', Username '{row[1]}', Discord ID '{row[2]}', Position '{row[3]}'")
-                    return {"id": row[0], "username": row[1], "discord_id": row[2], "position": row[3]}
+                    if include_discord_id:
+                        logger.debug(
+                            f"Next in queue: ID '{row[0]}', Username '{row[1]}', Discord ID '{row[2]}', Position '{row[3]}'")
+                        return {"id": row[0], "username": row[1], "discord_id": row[2], "position": row[3]}
+                    else:
+                        logger.debug(
+                            f"Next in queue: ID '{row[0]}', Username '{row[1]}', Position '{row[3]}'")
+                        return {"id": row[0], "username": row[1], "position": row[3]}
                 logger.debug("Queue is empty.")
                 return None
 
@@ -144,6 +172,18 @@ class BattleballDatabaseService:
             await db.execute("DELETE FROM queue WHERE id = ?", (queue_id,))
             await db.commit()
         logger.debug(f"Removed queue item with ID '{queue_id}'.")
+        await self.reorder_queue()
+
+    async def reorder_queue(self):
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute("SELECT id FROM queue ORDER BY position") as cursor:
+                queue_items = await cursor.fetchall()
+            
+            for new_position, (item_id,) in enumerate(queue_items, start=1):
+                await db.execute("UPDATE queue SET position = ? WHERE id = ?", (new_position, item_id))
+            
+            await db.commit()
+        logger.debug("Queue reordered successfully.")
 
     async def fulminate_user(self, username: str):
         # Delete the user and everything related to them in every table
@@ -155,16 +195,36 @@ class BattleballDatabaseService:
                 await db.execute("DELETE FROM queue WHERE username = ?", (username,))
                 await db.execute("DELETE FROM matches WHERE user_id = ?", (user_id,))
                 await db.commit()
+                await self.reorder_queue()
                 logger.debug(
                     f"Fulminated user '{username}' with ID '{user_id}'.")
             else:
                 logger.warning(f"User '{username}' not found in the database.")
 
-    async def get_queue(self):
+    async def get_queue(self, limit: int = 0, offset: int = 0, include_discord_id: bool = True):
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("SELECT username, discord_id FROM queue ORDER BY position") as cursor:
-                queue = [{"username": row[0], "discord_id": row[1]} for row in await cursor.fetchall()]
+            query = """
+                SELECT username, discord_id, position
+                FROM queue
+                ORDER BY position
+            """
+            if limit > 0:
+                query += f" LIMIT {limit}"
+            if offset > 0:
+                query += f" OFFSET {offset}"
+            
+            async with db.execute(query) as cursor:
+                if include_discord_id:
+                    queue = [{"username": row[0], "discord_id": row[1], "position": row[2]} for row in await cursor.fetchall()]
+                else:
+                    queue = [{"username": row[0], "position": row[2]} for row in await cursor.fetchall()]
         return queue
+
+    async def get_total_queue_users(self) -> int:
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute("SELECT COUNT(*) FROM queue") as cursor:
+                (count,) = await cursor.fetchone()
+                return count
 
     async def get_leaderboard(self, limit: int = 0, offset: int = 0):
         async with aiosqlite.connect(self.db_path) as db:
