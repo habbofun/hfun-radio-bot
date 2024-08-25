@@ -79,7 +79,9 @@ class BattleballAPI:
             logger.info("Leaderboard fetched successfully")
             return {
                 "leaderboard": formatted_leaderboard,
-                "next_update_in": max(0, round(self.update_timer.get_next_update_time()))
+                "next_update_in": max(0, round(self.update_timer.get_next_update_time())),
+                "update_interval_minutes": self.config.battleball_api_update_interval_minutes,
+                "update_interval_seconds": self.config.battleball_api_update_interval_seconds
             }
 
     def run(self, host=Config().battleball_api_host, port=Config().battleball_api_port):
