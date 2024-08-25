@@ -4,7 +4,7 @@ import asyncio
 from loguru import logger
 from discord.ext import commands
 from src.helper.config import Config
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from src.helper.singleton import Singleton
 from fastapi.middleware.cors import CORSMiddleware
 from src.utils.time_utils import UpdateTimer
@@ -54,35 +54,73 @@ class BattleballAPI:
             return {"message": "Welcome to the Battleball API!"}
 
         @self.app.get("/leaderboard")
-        async def get_leaderboard():
+        async def get_leaderboard(
+            page: int = Query(None, ge=1, description="Page number"),
+            per_page: int = Query(None, ge=1, le=100, description="Items per page")
+        ):
             """
             Fetches the leaderboard from the database and returns it as JSON.
+            If page and per_page are not provided, returns the entire leaderboard.
+
+            Args:
+                page (int, optional): The page number
+                per_page (int, optional): The number of items per page (max: 100)
 
             Returns:
-                dict: A dictionary containing the leaderboard and next update time.
+                dict: A dictionary containing the leaderboard and metadata.
             """
-            leaderboard = await self.db_service.get_leaderboard()
+            if page is None or per_page is None:
+                # Return the entire leaderboard
+                leaderboard = await self.db_service.get_leaderboard()
+                total_users = len(leaderboard)
+                formatted_leaderboard = [
+                    {
+                        "position": idx + 1,
+                        "username": username,
+                        "total_score": score,
+                        "ranked_matches": ranked_matches
+                    }
+                    for idx, (username, score, ranked_matches) in enumerate(leaderboard)
+                ]
+            else:
+                # Return paginated leaderboard
+                offset = (page - 1) * per_page
+                leaderboard = await self.db_service.get_leaderboard(limit=per_page, offset=offset)
+                total_users = await self.db_service.get_total_users()
+                formatted_leaderboard = [
+                    {
+                        "position": offset + idx + 1,
+                        "username": username,
+                        "total_score": score,
+                        "ranked_matches": ranked_matches
+                    }
+                    for idx, (username, score, ranked_matches) in enumerate(leaderboard)
+                ]
+
             if not leaderboard:
                 logger.warning("Leaderboard not found")
                 raise HTTPException(status_code=404, detail="Leaderboard not found")
 
-            formatted_leaderboard = [
-                {
-                    "position": idx + 1,
-                    "username": username,
-                    "total_score": score,
-                    "ranked_matches": ranked_matches
-                }
-                for idx, (username, score, ranked_matches) in enumerate(leaderboard)
-            ]
-
-            logger.debug("Leaderboard fetched successfully")
-            return {
+            response = {
                 "leaderboard": formatted_leaderboard,
+                "metadata": {
+                    "total_users": total_users,
+                },
                 "next_update_in": max(0, round(self.update_timer.get_next_update_time())),
                 "update_interval_minutes": self.config.battleball_api_update_interval_minutes,
                 "update_interval_seconds": self.config.battleball_api_update_interval_seconds
             }
+
+            if page is not None and per_page is not None:
+                total_pages = (total_users + per_page - 1) // per_page
+                response["metadata"].update({
+                    "page": page,
+                    "per_page": per_page,
+                    "total_pages": total_pages,
+                })
+
+            logger.debug("Leaderboard fetched successfully")
+            return response
 
     def run(self, host=Config().battleball_api_host, port=Config().battleball_api_port):
         """

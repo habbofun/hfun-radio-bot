@@ -166,7 +166,7 @@ class BattleballDatabaseService:
                 queue = [{"username": row[0], "discord_id": row[1]} for row in await cursor.fetchall()]
         return queue
 
-    async def get_leaderboard(self, limit: int = 0):
+    async def get_leaderboard(self, limit: int = 0, offset: int = 0):
         async with aiosqlite.connect(self.db_path) as db:
             query = """
                 SELECT username, total_score, ranked_matches
@@ -175,6 +175,14 @@ class BattleballDatabaseService:
             """
             if limit > 0:
                 query += f" LIMIT {limit}"
+            if offset > 0:
+                query += f" OFFSET {offset}"
             
             cursor = await db.execute(query)
             return await cursor.fetchall()
+
+    async def get_total_users(self) -> int:
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute("SELECT COUNT(*) FROM users") as cursor:
+                (count,) = await cursor.fetchone()
+                return count
