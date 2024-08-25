@@ -4,6 +4,8 @@ import time
 
 from src.database.service.battleball_service import BattleballDatabaseService
 from src.controller.habbo.battleball.worker.worker import BattleballWorker
+from src.utils.time_utils import UpdateTimer
+from src.helper.config import Config
 
 class BattleballUpdateLoop(commands.Cog):
     """
@@ -16,7 +18,7 @@ class BattleballUpdateLoop(commands.Cog):
         bot (commands.Bot): The instance of the bot.
         database_service (BattleballDatabaseService): The database service for battleball.
         battleball_worker (BattleballWorker): The worker for managing BattleBall updates.
-        last_run_time (float): The timestamp of the last time the queue_top_users task was run.
+        update_timer (UpdateTimer): The singleton instance of the UpdateTimer class.
 
     Methods:
         queue_top_users: The task loop that queues the top 45 users in the battleball database for updates.
@@ -33,21 +35,21 @@ class BattleballUpdateLoop(commands.Cog):
         self.bot = bot
         self.database_service = BattleballDatabaseService()
         self.battleball_worker = BattleballWorker(bot)
-        self.last_run_time = 0
+        self.update_timer = UpdateTimer()
         self.queue_top_users.start()
 
-    @tasks.loop(minutes=10)
+    @tasks.loop(seconds=Config().battleball_api_update_interval_seconds)
     async def queue_top_users(self) -> None:
         """
         A task loop that queues the top 45 users in the battleball database for updates.
 
-        This method is called every 10 minutes to add the top 45 users on the leaderboard
+        This method is called every X minutes to add the top 45 users on the leaderboard
         to the update queue.
 
         Returns:
             None
         """
-        self.last_run_time = time.time()  # Update the last_run_time here
+        self.update_timer.update_last_run_time()  # Update the last_run_time here
         leaderboard = await self.database_service.get_leaderboard()
 
         # Only process if there are users to queue

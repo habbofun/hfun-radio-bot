@@ -7,7 +7,7 @@ from src.helper.config import Config
 from fastapi import FastAPI, HTTPException
 from src.helper.singleton import Singleton
 from fastapi.middleware.cors import CORSMiddleware
-from src.cogs.loops.queue_top_users import BattleballUpdateLoop
+from src.utils.time_utils import UpdateTimer
 from src.database.service.battleball_service import BattleballDatabaseService
 
 
@@ -24,7 +24,7 @@ class BattleballAPI:
         self.app = FastAPI()
         self.config = Config()
         self.db_service = BattleballDatabaseService()
-        self.battleball_update_loop = BattleballUpdateLoop(bot)
+        self.update_timer = UpdateTimer()
 
         # Enable CORS
         self.app.add_middleware(
@@ -76,17 +76,10 @@ class BattleballAPI:
                 for idx, (username, score, ranked_matches) in enumerate(leaderboard)
             ]
 
-            # Calculate time remaining until next queue_top_users execution
-            next_run_time = 0
-            if self.battleball_update_loop:
-                last_run_time = self.battleball_update_loop.last_run_time
-                interval = self.battleball_update_loop.queue_top_users.seconds  # This should be in seconds
-                next_run_time = last_run_time + interval - time.time()
-
             logger.info("Leaderboard fetched successfully")
             return {
                 "leaderboard": formatted_leaderboard,
-                "next_update_in": max(0, round(next_run_time))
+                "next_update_in": max(0, round(self.update_timer.get_next_update_time()))
             }
 
     def run(self, host=Config().battleball_api_host, port=Config().battleball_api_port):

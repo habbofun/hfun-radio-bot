@@ -55,6 +55,8 @@ class Config:
 
         self.battleball_api_host: str = "0.0.0.0"
         self.battleball_api_port: int = 2005
+        self.battleball_api_update_interval_minutes: int = 10
+        self.battleball_api_update_interval_seconds: int = self.battleball_api_update_interval_minutes * 60
 
         self.rainbow_line_gif: str = "https://i.imgur.com/mnydyND.gif"
         self.app_logo: str = self.settings.get("app_logo", "")
