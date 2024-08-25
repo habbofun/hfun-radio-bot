@@ -1,36 +1,30 @@
+import time
 import uvicorn
 import asyncio
 from loguru import logger
+from discord.ext import commands
 from src.helper.config import Config
 from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from src.helper.singleton import Singleton
-from src.database.service.battleball_service import BattleballDatabaseService
-import time
+from fastapi.middleware.cors import CORSMiddleware
 from src.cogs.loops.queue_top_users import BattleballUpdateLoop
+from src.database.service.battleball_service import BattleballDatabaseService
+
 
 @Singleton
 class BattleballAPI:
     """
     A class to encapsulate the FastAPI application for Battleball.
-
-    This class handles the initialization and running of a FastAPI server to provide
-    access to the Battleball database through a RESTful API.
-
-    Attributes:
-        app (FastAPI): The FastAPI application instance.
-        db_service (BattleballDatabaseService): The database service for accessing Battleball data.
-        battleball_update_loop (BattleballUpdateLoop): The instance of the BattleballUpdateLoop cog.
     """
 
-    def __init__(self):
+    def __init__(self, bot: commands.Bot):
         """
         Initializes the BattleballAPI class, setting up the FastAPI app and database service.
         """
         self.app = FastAPI()
         self.config = Config()
         self.db_service = BattleballDatabaseService()
-        self.battleball_update_loop = None
+        self.battleball_update_loop = BattleballUpdateLoop(bot)
 
         # Enable CORS
         self.app.add_middleware(
@@ -65,7 +59,7 @@ class BattleballAPI:
             Fetches the leaderboard from the database and returns it as JSON.
 
             Returns:
-                list: A list of dictionaries representing the leaderboard.
+                dict: A dictionary containing the leaderboard and next update time.
             """
             leaderboard = await self.db_service.get_leaderboard()
             if not leaderboard:
@@ -86,7 +80,7 @@ class BattleballAPI:
             next_run_time = 0
             if self.battleball_update_loop:
                 last_run_time = self.battleball_update_loop.last_run_time
-                interval = self.battleball_update_loop.queue_top_users.minutes * 60
+                interval = self.battleball_update_loop.queue_top_users.seconds  # This should be in seconds
                 next_run_time = last_run_time + interval - time.time()
 
             logger.info("Leaderboard fetched successfully")
@@ -119,8 +113,3 @@ class BattleballAPI:
         logger.info(f"Starting Battleball API at '{self.config.battleball_api_host}':'{self.config.battleball_api_port}'")
         loop = asyncio.get_event_loop()
         loop.run_in_executor(None, self.run)
-
-        # Get the BattleballUpdateLoop instance
-        self.battleball_update_loop = self.bot.get_cog("BattleballUpdateLoop")
-        if not self.battleball_update_loop:
-            logger.warning("BattleballUpdateLoop cog not found")

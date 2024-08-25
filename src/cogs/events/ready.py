@@ -35,7 +35,7 @@ class OnReady(commands.Cog):
         """
         self.bot = bot
         self.config = Config()
-        self.battleball_api = BattleballAPI()
+        self.battleball_api = BattleballAPI(bot)
         self.battleball_worker = BattleballWorker(self)
 
     @commands.Cog.listener()

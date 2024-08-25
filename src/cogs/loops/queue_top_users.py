@@ -41,13 +41,13 @@ class BattleballUpdateLoop(commands.Cog):
         """
         A task loop that queues the top 45 users in the battleball database for updates.
 
-        This method is called every hour to add the top 45 users on the leaderboard
+        This method is called every 10 minutes to add the top 45 users on the leaderboard
         to the update queue.
 
         Returns:
             None
         """
-        self.last_run_time = time.time()
+        self.last_run_time = time.time()  # Update the last_run_time here
         leaderboard = await self.database_service.get_leaderboard()
 
         # Only process if there are users to queue
