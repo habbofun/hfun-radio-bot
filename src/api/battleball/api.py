@@ -76,7 +76,7 @@ class BattleballAPI:
                 for idx, (username, score, ranked_matches) in enumerate(leaderboard)
             ]
 
-            logger.info("Leaderboard fetched successfully")
+            logger.debug("Leaderboard fetched successfully")
             return {
                 "leaderboard": formatted_leaderboard,
                 "next_update_in": max(0, round(self.update_timer.get_next_update_time())),

@@ -172,6 +172,5 @@ class BattleballDatabaseService:
                 SELECT username, total_score, ranked_matches
                 FROM users
                 ORDER BY total_score DESC
-                LIMIT 45
             """)
             return await cursor.fetchall()
