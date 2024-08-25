@@ -33,7 +33,7 @@ class BattleballUpdateLoop(commands.Cog):
         self.battleball_worker = BattleballWorker(bot)
         self.queue_top_users.start()
 
-    @tasks.loop(hours=1)
+    @tasks.loop(minutes=10)
     async def queue_top_users(self) -> None:
         """
         A task loop that queues the top 45 users in the battleball database for updates.
