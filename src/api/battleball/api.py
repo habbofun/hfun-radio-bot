@@ -122,6 +122,68 @@ class BattleballAPI:
             logger.debug("Leaderboard fetched successfully")
             return response
 
+        @self.app.get("/queue")
+        async def get_queue(
+            page: int = Query(None, ge=1, description="Page number"),
+            per_page: int = Query(None, ge=1, le=100, description="Items per page")
+        ):
+            """
+            Fetches the queue from the database and returns it as JSON.
+            If page and per_page are not provided, returns the entire queue.
+
+            Args:
+                page (int, optional): The page number
+                per_page (int, optional): The number of items per page (max: 100)
+
+            Returns:
+                dict: A dictionary containing the queue and metadata.
+            """
+            if page is None or per_page is None:
+                # Return the entire queue
+                queue = await self.db_service.get_queue(include_discord_id=False)
+                total_users = len(queue)
+                formatted_queue = [
+                    {
+                        "position": item["position"],
+                        "username": item["username"]
+                    }
+                    for item in queue
+                ]
+            else:
+                # Return paginated queue
+                offset = (page - 1) * per_page
+                queue = await self.db_service.get_queue(limit=per_page, offset=offset, include_discord_id=False)
+                total_users = await self.db_service.get_total_queue_users()
+                formatted_queue = [
+                    {
+                        "position": item["position"],
+                        "username": item["username"]
+                    }
+                    for item in queue
+                ]
+
+            if not queue:
+                logger.warning("Queue is empty")
+                raise HTTPException(status_code=404, detail="Queue is empty")
+
+            response = {
+                "queue": formatted_queue,
+                "metadata": {
+                    "total_users": total_users,
+                },
+            }
+
+            if page is not None and per_page is not None:
+                total_pages = (total_users + per_page - 1) // per_page
+                response["metadata"].update({
+                    "page": page,
+                    "per_page": per_page,
+                    "total_pages": total_pages,
+                })
+
+            logger.debug("Queue fetched successfully")
+            return response
+
     def run(self, host=Config().battleball_api_host, port=Config().battleball_api_port):
         """
         Starts the FastAPI server using Uvicorn with no logging output.
