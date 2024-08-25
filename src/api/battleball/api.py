@@ -3,6 +3,7 @@ import asyncio
 from loguru import logger
 from src.helper.config import Config
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from src.helper.singleton import Singleton
 from src.database.service.battleball_service import BattleballDatabaseService
 
@@ -26,6 +27,15 @@ class BattleballAPI:
         self.app = FastAPI()
         self.config = Config()
         self.db_service = BattleballDatabaseService()
+
+        # Enable CORS
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["http://localhost:3000", "https://hfun.info"],  # Add your frontend URL here
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
         # Register API routes
         self.register_routes()
