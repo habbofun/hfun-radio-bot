@@ -162,30 +162,31 @@ class BattleballWorker:
         except discord.HTTPException as e:
             logger.error(f"Failed to create or update embed: {e}")
 
-    async def get_leaderboard(self, mobile_version: bool = False) -> str:
-        leaderboard = await self.db_service.get_leaderboard()
+    async def get_leaderboard(self, mobile_version: bool = False, limit: int = 40, offset: int = 0) -> str:
+        leaderboard = await self.db_service.get_leaderboard(limit, offset)
 
         if mobile_version:
             formatted_leaderboard = [
-                (idx + 1, username, score)
-                for idx, (username, score, _, _) in enumerate(leaderboard)
+                f"**{idx + 1}**. {username} - {score}"
+                for idx, (username, score, _) in enumerate(leaderboard)
             ]
-            return tabulate(
-                formatted_leaderboard,
-                headers=["Position", "Username", "Score"],
-                tablefmt="pretty"
-            )
+            formatted_text = "\n".join(formatted_leaderboard)
+
+            logger.debug(f"Formatted text length: {len(formatted_text)}")
+            return formatted_text
 
         formatted_leaderboard = [
             (idx + 1, username, score, ranked_matches)
             for idx, (username, score, ranked_matches) in enumerate(leaderboard)
         ]
-
-        return tabulate(
+        formatted_text =  tabulate(
             formatted_leaderboard,
             headers=["Position", "Username", "Score", "Ranked Matches"],
             tablefmt="pretty"
         )
+
+        logger.debug(f"Formatted text length: {len(formatted_text)}")
+        return formatted_text
 
     async def update_user_stats(self, user_id, username, matches):
         total_score = 0

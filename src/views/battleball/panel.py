@@ -24,28 +24,13 @@ class BattleballPanelView(discord.ui.View):
         return await interaction.response.send_message("Sorry! This option is **not** yet implemented.", ephemeral=True)
 
     @discord.ui.button(label='📲 Mobile Version', style=discord.ButtonStyle.green, custom_id='battleball_panel:mobile_version')
-    async def create_room_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def leaderboard_mobile_version(self, interaction: discord.Interaction, button: discord.ui.Button):
         leaderboard_mobile_string = await self.battleball_worker.get_leaderboard(mobile_version=True)
-        fields = [
-            {
-                "name": "📃 Ranking",
-                "value": f"```{leaderboard_mobile_string}```",
-                "inline": True
-            }
-        ]
-
-        embed_schema = EmbedSchema(
-            title="BattleBall Leaderboard",
-            description="It's probably not updated in real-time, but it should give you a good idea of who's on top!",
-            author_url=self.config.app_url,
-            fields=fields,
-            color=0xF4D701
+        await interaction.response.send_message(
+            leaderboard_mobile_string,
+            ephemeral=True
         )
 
-        embed = await EmbedController().build_embed(embed_schema)
-        await interaction.response.send_message(content=None, embed=embed, ephemeral=True)
-
-    # Make a button that shows the queue
     @discord.ui.button(label='🔍 Queue', style=discord.ButtonStyle.blurple, custom_id='battleball_panel:queue')
     async def queue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         queue_list = await self.db_service.get_queue()
@@ -67,18 +52,11 @@ class BattleballPanelView(discord.ui.View):
                 queue_display.append(
                     f"{self.config.abajo_icon} **{position}**. {username} (Added by: <@{discord_id}>)")
 
-        queue_message = "\n".join(queue_display)
-        await interaction.response.send_message(f"**Current Queue:**\n{queue_message}", ephemeral=True)
+        queue_message = "**Current Queue:**\n"
+        for line in queue_display:
+            if len(queue_message) + len(line) > 1900:
+                queue_message += "..."
+                break
+            queue_message += line + "\n"
 
-    async def update_panel(self):
-        leaderboard = await self.db_service.get_leaderboard()
-        
-        embed = discord.Embed(title="Battleball Leaderboard", color=0x00ff00)
-        for idx, (username, total_score, ranked_matches) in enumerate(leaderboard[:10], start=1):
-            embed.add_field(
-                name=f"{idx}. {username}",
-                value=f"Score: {total_score} | Ranked Matches: {ranked_matches}",
-                inline=False
-            )
-
-        # ... (rest of the method)
+        await interaction.response.send_message(queue_message, ephemeral=True)

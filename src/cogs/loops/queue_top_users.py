@@ -58,7 +58,7 @@ class BattleballUpdateLoop(commands.Cog):
             top_users = leaderboard[:45]
             for user in top_users:
                 username = user[0]
-                discord_id = 0  # Replace with actual Discord ID if available
+                discord_id = 1270453978861142097
 
                 await self.database_service.add_to_queue(username, discord_id)
 
