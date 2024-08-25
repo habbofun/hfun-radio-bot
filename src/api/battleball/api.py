@@ -73,10 +73,9 @@ class BattleballAPI:
                     "position": idx + 1,
                     "username": username,
                     "total_score": score,
-                    "ranked_matches": ranked_matches,
-                    "non_ranked_matches": non_ranked_matches
+                    "ranked_matches": ranked_matches
                 }
-                for idx, (username, score, ranked_matches, non_ranked_matches) in enumerate(leaderboard)
+                for idx, (username, score, ranked_matches) in enumerate(leaderboard)
             ]
 
             logger.info("Leaderboard fetched successfully")

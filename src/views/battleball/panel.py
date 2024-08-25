@@ -69,3 +69,16 @@ class BattleballPanelView(discord.ui.View):
 
         queue_message = "\n".join(queue_display)
         await interaction.response.send_message(f"**Current Queue:**\n{queue_message}", ephemeral=True)
+
+    async def update_panel(self):
+        leaderboard = await self.db_service.get_leaderboard()
+        
+        embed = discord.Embed(title="Battleball Leaderboard", color=0x00ff00)
+        for idx, (username, total_score, ranked_matches) in enumerate(leaderboard[:10], start=1):
+            embed.add_field(
+                name=f"{idx}. {username}",
+                value=f"Score: {total_score} | Ranked Matches: {ranked_matches}",
+                inline=False
+            )
+
+        # ... (rest of the method)

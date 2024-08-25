@@ -177,13 +177,23 @@ class BattleballWorker:
             )
 
         formatted_leaderboard = [
-            (idx + 1, username, score, ranked_matches, non_ranked_matches)
-            for idx, (username, score, ranked_matches, non_ranked_matches) in enumerate(leaderboard)
+            (idx + 1, username, score, ranked_matches)
+            for idx, (username, score, ranked_matches) in enumerate(leaderboard)
         ]
 
         return tabulate(
             formatted_leaderboard,
-            headers=["Position", "Username", "Score",
-                     "Ranked Matches", "Non-Ranked Matches"],
+            headers=["Position", "Username", "Score", "Ranked Matches"],
             tablefmt="pretty"
         )
+
+    async def update_user_stats(self, user_id, username, matches):
+        total_score = 0
+        ranked_matches = 0
+
+        for match in matches:
+            if match.info.ranked:
+                total_score += match.info.gameScore
+                ranked_matches += 1
+
+        await self.db_service.update_user_stats(user_id, username, total_score, ranked_matches)

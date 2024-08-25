@@ -17,8 +17,7 @@ class BattleballDatabaseService:
                     id INTEGER PRIMARY KEY,
                     username TEXT UNIQUE,
                     total_score INTEGER DEFAULT 0,
-                    ranked_matches INTEGER DEFAULT 0,
-                    non_ranked_matches INTEGER DEFAULT 0
+                    ranked_matches INTEGER DEFAULT 0
                 )
             """)
             await db.execute("""
@@ -83,12 +82,6 @@ class BattleballDatabaseService:
                     SET total_score = total_score + ?, ranked_matches = ranked_matches + 1
                     WHERE id = ?
                 """, (score, user_id))
-            else:
-                await db.execute("""
-                    UPDATE users
-                    SET non_ranked_matches = non_ranked_matches + 1
-                    WHERE id = ?
-                """, (user_id,))
             await db.commit()
         logger.debug(
             f"Updated user ID '{user_id}' with score '{score}' and ranked status '{is_ranked}'.")
@@ -175,11 +168,10 @@ class BattleballDatabaseService:
 
     async def get_leaderboard(self):
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("""
-                SELECT username, total_score, ranked_matches, non_ranked_matches
+            cursor = await db.execute("""
+                SELECT username, total_score, ranked_matches
                 FROM users
                 ORDER BY total_score DESC
-            """) as cursor:
-                leaderboard = await cursor.fetchall()
-        logger.debug(f"Retrieved leaderboard with {len(leaderboard)} users.")
-        return leaderboard
+                LIMIT 45
+            """)
+            return await cursor.fetchall()

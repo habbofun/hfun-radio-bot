@@ -34,6 +34,20 @@ class BattleLeaderboard(commands.Cog):
         self.config = Config()
         self.battleball_worker = BattleballWorker(bot)
 
+    @app_commands.command(name="leaderboard", description="Show the Battleball leaderboard")
+    async def leaderboard(self, interaction: discord.Interaction):
+        leaderboard = await self.battleball_worker.db_service.get_leaderboard()
+        
+        embed = discord.Embed(title="Battleball Leaderboard", color=0x00ff00)
+        for idx, (username, total_score, ranked_matches) in enumerate(leaderboard[:10], start=1):
+            embed.add_field(
+                name=f"{idx}. {username}",
+                value=f"Score: {total_score} | Ranked Matches: {ranked_matches}",
+                inline=False
+            )
+
+        await interaction.response.send_message(embed=embed)
+
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.command(
         name="battleball",

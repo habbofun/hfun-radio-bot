@@ -6,7 +6,6 @@ class User(BaseModel):
     username: str
     total_score: int
     ranked_matches: int
-    non_ranked_matches: int
 
 
 class Match(BaseModel):
